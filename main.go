@@ -13,20 +13,20 @@ import (
 )
 
 type serviceSettings struct {
-	Host            *string
-	Port            *int
-	DownloadDir     *string
-	DownloadRate    *int
-	UploadRate      *int
-	MaxConnections  *int
-	NoDHT           *bool
-	EnableLog		*bool
-	StorageType 	*string
-	MemorySize		*int64
-	Background		*bool
-	CORS			*bool
-	TMDBKey			*string
-	OSUserAgent		*string
+	Host           *string
+	Port           *int
+	DownloadDir    *string
+	DownloadRate   *int
+	UploadRate     *int
+	MaxConnections *int
+	NoDHT          *bool
+	EnableLog      *bool
+	StorageType    *string
+	MemorySize     *int64
+	Background     *bool
+	CORS           *bool
+	TMDBKey        *string
+	OSUserAgent    *string
 }
 
 var procQuit chan bool
@@ -64,7 +64,7 @@ func waitingForSignals(saveSettings serviceSettings, receivedArgs []int64, srv *
 		*saveSettings.DownloadRate = int(receivedArgs[0])
 		*saveSettings.UploadRate = int(receivedArgs[1])
 	}
-	
+
 	select {
 	case err := <-procError:
 		log.Println("Error:", err)
@@ -109,7 +109,7 @@ func main() {
 	settings.Host = flag.String("host", "", "listening server ip")
 	settings.Port = flag.Int("port", 9000, "listening port")
 	settings.DownloadDir = flag.String("dir", "", "specify the directory where files will be downloaded to if storagetype is set to \"piecefile\" or \"file\"")
-	settings.DownloadRate = flag.Int("downrate", 4096, "download speed rate in Kbps")
+	settings.DownloadRate = flag.Int("downrate", 32768, "download speed rate in Kbps")
 	settings.UploadRate = flag.Int("uprate", 256, "upload speed rate in Kbps")
 	settings.MaxConnections = flag.Int("maxconn", 40, "max connections per torrent")
 	settings.NoDHT = flag.Bool("nodht", false, "disable dht")
@@ -117,7 +117,7 @@ func main() {
 	settings.StorageType = flag.String("storagetype", "memory", "select storage type (must be set to \"memory\" or \"piecefile\" or \"file\")")
 	settings.Background = flag.Bool("background", false, "run the server in the background")
 	settings.CORS = flag.Bool("cors", false, "enable CORS")
-	settings.MemorySize = flag.Int64("memorysize", 64, "specify the storage memory size in MB if storagetype is set to \"memory\" (minimum 64)") // 64MB is optimal for TVs
+	settings.MemorySize = flag.Int64("memorysize", 128, "specify the storage memory size in MB if storagetype is set to \"memory\" (minimum 64)") // 64MB is optimal for TVs
 	settings.TMDBKey = flag.String("tmdbkey", "", "set external TMDB API key")
 	settings.OSUserAgent = flag.String("osuseragent", "", "set external OpenSubtitles user agent")
 
@@ -137,7 +137,7 @@ func main() {
 	}
 
 	// Check memory size if StorageType is memory
-	if *settings.StorageType == "memory" && *settings.MemorySize < 64  {
+	if *settings.StorageType == "memory" && *settings.MemorySize < 64 {
 		log.Printf("the memory size is too small: \"%dMB\" (must be set to minimum 64MB)\nUsage of %s:\n", *settings.MemorySize, os.Args[0])
 		flag.PrintDefaults()
 		os.Exit(2)
@@ -169,21 +169,21 @@ func main() {
 		log.SetOutput(ioutil.Discard)
 		defer log.SetOutput(os.Stderr)
 	}
-	
+
 	originalArgs = os.Args[1:]
 	// Check if need to run in the background
 	if *settings.Background == true {
 		args := originalArgs
 		// Disable the background argument to false before the start
 		for i := 0; i < len(args); i++ {
-			if args[i] == "-background=true" || args[i] == "-background" || args[i] == "--background=true" || args[i] == "--background" { 
+			if args[i] == "-background=true" || args[i] == "-background" || args[i] == "--background=true" || args[i] == "--background" {
 				args[i] = "-background=false"
 				break
 			}
 		}
 		// Disable logs when running in the background
 		for i := 0; i < len(args); i++ {
-			if args[i] == "-log=true" || args[i] == "-log" || args[i] == "--log=true" || args[i] == "--log" { 
+			if args[i] == "-log=true" || args[i] == "-log" || args[i] == "--log=true" || args[i] == "--log" {
 				args[i] = "-log=false"
 				break
 			}
@@ -197,5 +197,5 @@ func main() {
 	cl = startTorrentClient(settings)
 	srv := startHTTPServer(*settings.Host, *settings.Port, *settings.CORS)
 
-	waitingForSignals(settings, []int64 {int64(*settings.DownloadRate), int64(*settings.UploadRate)}, srv)
+	waitingForSignals(settings, []int64{int64(*settings.DownloadRate), int64(*settings.UploadRate)}, srv)
 }

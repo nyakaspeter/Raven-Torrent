@@ -12,8 +12,9 @@ import (
 
 	alog "github.com/anacrolix/log"
 	"github.com/anacrolix/torrent"
+	"github.com/anacrolix/torrent/metainfo"
 	"github.com/anacrolix/torrent/storage"
-	"github.com/iamacarpet/go-torrent-storage-fat32"
+	fat32storage "github.com/iamacarpet/go-torrent-storage-fat32"
 	"github.com/oz/osdb"
 
 	"golang.org/x/time/rate"
@@ -22,15 +23,18 @@ import (
 )
 
 const (
-	version = "0.4.1"
+	version        = "0.4.1"
 	resolveTimeout = time.Second * 35
+
+	// Maximum 16 MByte torrent piece length supported.
+	maxPieceLength = 1 << 24
 )
 
 // Torrent lock structure
 type torrentLeaf struct {
-	torrent *torrent.Torrent
-	progress int64 // Downoad stats measurement
-	prevtime time.Time // Previous time for progress calculation
+	torrent     *torrent.Torrent
+	progress    int64          // Downoad stats measurement
+	prevtime    time.Time      // Previous time for progress calculation
 	fileclients map[string]int // Count active connections
 }
 
@@ -42,10 +46,11 @@ var gettingTorrent bool = false
 // Torrent receiver settings
 var receiverEnabled bool = false
 var receivedHash string = ""
+var receivedTorrent *metainfo.MetaInfo = nil
 
 func startTorrentClient(settings serviceSettings) *torrent.Client {
 	torrents = make(map[string]*torrentLeaf)
-	
+
 	cfg := torrent.NewDefaultClientConfig()
 
 	if *settings.StorageType == "memory" {
@@ -72,7 +77,7 @@ func startTorrentClient(settings serviceSettings) *torrent.Client {
 
 	// up/download speed rate in bytes per second from megabits per second
 	downrate := int((*settings.DownloadRate * 1024) / 8)
-	uprate := int((*settings.UploadRate * 1024) / 8)	
+	uprate := int((*settings.UploadRate * 1024) / 8)
 
 	if downrate != 0 {
 		cfg.DownloadRateLimiter = rate.NewLimiter(rate.Limit(downrate), downrate)
@@ -118,7 +123,16 @@ func decFileClients(path string, t *torrentLeaf) int {
 }
 
 func addMagnet(uri string) *torrent.Torrent {
-	spec, err := torrent.TorrentSpecFromMagnetURI(uri)
+	var spec *torrent.TorrentSpec
+	var t *torrent.Torrent
+	var err error = nil
+
+	if receivedTorrent != nil {
+		spec = torrent.TorrentSpecFromMetaInfo(receivedTorrent)
+	} else {
+		spec, err = torrent.TorrentSpecFromMagnetURI(uri)
+	}
+
 	if err != nil {
 		log.Println(err)
 		return nil
@@ -137,33 +151,38 @@ func addMagnet(uri string) *torrent.Torrent {
 
 	gettingTorrent = true
 
-	if t, err := cl.AddMagnet(uri); err != nil {
+	if receivedTorrent != nil {
+		t, err = cl.AddTorrent(receivedTorrent)
+	} else {
+		t, err = cl.AddMagnet(uri)
+	}
+
+	if err != nil {
 		log.Panicln(err)
 		gettingTorrent = false
 		return nil
-	} else {
-		select {
-		case <-t.GotInfo():
-			// Maximum 8 MByte piece length supported.
-			if t.Info().PieceLength <= (1 << 23) {
-				torrents[t.InfoHash().String()] = &torrentLeaf {
-					torrent: t,
-					progress: 0,
-					prevtime: time.Now(),
-					fileclients: make(map[string]int),
-				}
-				gettingTorrent = false
-				return t
-			} else {
-				t.Drop()
-				gettingTorrent = false
-				return nil
+	}
+
+	select {
+	case <-t.GotInfo():
+		if t.Info().PieceLength <= maxPieceLength {
+			torrents[t.InfoHash().String()] = &torrentLeaf{
+				torrent:     t,
+				progress:    0,
+				prevtime:    time.Now(),
+				fileclients: make(map[string]int),
 			}
-		case <-time.After(resolveTimeout):
+			gettingTorrent = false
+			return t
+		} else {
 			t.Drop()
 			gettingTorrent = false
 			return nil
 		}
+	case <-time.After(resolveTimeout):
+		t.Drop()
+		gettingTorrent = false
+		return nil
 	}
 }
 
@@ -205,7 +224,7 @@ func getFileByPath(search string, files []*torrent.File) int {
 func serveTorrentFile(w http.ResponseWriter, r *http.Request, file *torrent.File) {
 	reader := file.NewReader()
 	// Never set a smaller buffer than the maximum torrent piece length!
-	reader.SetReadahead(8 * 1 << 20)
+	reader.SetReadahead(maxPieceLength)
 
 	path := file.FileInfo().Path
 	fname := ""
@@ -252,11 +271,11 @@ func calculateOpensubtitlesHash(file *torrent.File) string {
 		hash += num
 	}
 
-	return fmt.Sprintf("%016x", hash + uint64(file.Length()))
+	return fmt.Sprintf("%016x", hash+uint64(file.Length()))
 }
 
 func createServerPage() string {
-    html := `<!DOCTYPE html>
+	html := `<!DOCTYPE html>
 			<html lang="en">
 			<head>
 			  	<meta charset="UTF-8">
@@ -683,6 +702,21 @@ func setReceivedMagnetHash(hash string) string {
 	if receiverEnabled == true {
 		log.Println("Received magnet hash:", hash)
 
+		receivedTorrent = nil
+		receivedHash = hash
+		receiverEnabled = false
+		return "ok"
+	} else {
+		return ""
+	}
+}
+
+func setReceivedTorrent(mi *metainfo.MetaInfo) string {
+	if receiverEnabled == true {
+		hash := torrent.TorrentSpecFromMetaInfo(mi).InfoHash.String()
+		log.Println("Received torrent hash:", hash)
+
+		receivedTorrent = mi
 		receivedHash = hash
 		receiverEnabled = false
 		return "ok"
