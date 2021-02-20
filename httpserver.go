@@ -233,7 +233,7 @@ func handleAPI(cors bool) {
 					file := t.torrent.Files()[idx]
 
 					path := file.DisplayPath()
-					log.Println("Download torrent:", vars["hash"])
+					log.Println("Downloading torrent:", vars["hash"])
 
 					incFileClients(path, t)
 

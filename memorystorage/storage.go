@@ -1,113 +1,120 @@
 package memorystorage
 
 import (
-    //"fmt"
+	//"fmt"
 	"io"
-    //"log"
-    "runtime"
-    "sync"
+	"log"
+	"runtime"
+	"sync"
 
-    "github.com/anacrolix/torrent/metainfo"
-    "github.com/hashicorp/golang-lru"
+	"github.com/anacrolix/torrent/metainfo"
+	lru "github.com/hashicorp/golang-lru"
 )
 
-var maxCount = 16 // Default element count is 16 for 4 MByte (1 << 22) piece length if max memory is 64 MB
+const megaByte = 1024 * 1024
 
-var lruStorage, _ = lru.NewWithEvict(maxCount, onEvicted)
+var maxMemorySize int64 = 128 // Maximum memory size in MByte
+
+var maxPieceLength int64 = 16 // Maximum piece length in MByte
+
+var maxCount = 8 // Number of pieces that LRU cache can hold
+
+var lruStorage *lru.Cache
 
 var needToDeleteKey = -1
-
-var maxMemorySize int64 = 64 // Maximum memory size in MByte
 
 var memStats runtime.MemStats
 
 var setMaxCount = true
 
-func SetMaxMemorySize(size int64) {
-	maxMemorySize = size
-}
-
-func GetMaxMemorySize() int64 {
-    return maxMemorySize
+func SetMemorySize(memorySize int64, pieceLength int64) {
+	maxMemorySize = memorySize
+	maxPieceLength = pieceLength
+	maxCount = int(maxMemorySize / pieceLength)
+	lruStorage, _ = lru.NewWithEvict(maxCount, onEvicted)
 }
 
 func onEvicted(key interface{}, value interface{}) {
 	needToDeleteKey = key.(int)
-	//log.Printf("Evicted key: %d\n", needToDeleteKey)
+	//log.Printf("Removed piece from LRU: %d, LRU space: %d/%d", needToDeleteKey, lruStorage.Len(), maxCount)
+	//logMemStats()
 }
 
 // Restricting all I/O through a single mutex, which would stop simultanious read/writes.
 func storageWriteAt(mt *memoryTorrent, key int, b []byte, off int64) (int, error) {
-    mt.storageMutex.Lock()
-    defer mt.storageMutex.Unlock()
+	mt.storageMutex.Lock()
+	defer mt.storageMutex.Unlock()
 
-    if setMaxCount == true {
-        elementCount := maxCount
-        if mt.pl <= (1 << 23) {
-        	if mt.pl >= (1 << 13) {
-        		elementCount = int((maxMemorySize * (1 << 20)) / mt.pl)
-        	} else {
-        		elementCount = (1 << 13)
-        	}
-        }
+	if setMaxCount == true {
+		elementCount := int(maxMemorySize * megaByte / mt.pl)
 
-        if maxCount != elementCount {
-        	lruStorage.Resize(elementCount)
-        	maxCount = elementCount
-        	//log.Printf("Memory size / Piece lenght = Element count\n%d / %d = %d\n", maxMemorySize * (1 << 20), mt.pl, elementCount)
-        }
-        setMaxCount = false
-    }
+		if maxCount != elementCount {
+			lruStorage.Resize(elementCount)
+			maxCount = elementCount
+		}
 
-    dataInterface, present := lruStorage.Get(key)
-    if present == false {
-        dataInterface = []byte{}
-    }
-    
-    ioff := int(off)
+		log.Printf("LRU cache size: %d", maxCount)
+
+		setMaxCount = false
+	}
+
+	newPiece := false
+
+	dataInterface, present := lruStorage.Get(key)
+	if present == false {
+		newPiece = true
+		dataInterface = []byte{}
+	}
+
+	ioff := int(off)
 	iend := ioff + len(b)
 	if len(dataInterface.([]byte)) < iend {
 		if len(dataInterface.([]byte)) == ioff {
-            if lruStorage.Add(key, append(dataInterface.([]byte), b...)) == true {
-                if needToDeleteKey > -1 {
-                    mt.cl.pc.Set(metainfo.PieceKey { mt.ih, needToDeleteKey }, false)
-                }
-            }
+			if lruStorage.Add(key, append(dataInterface.([]byte), b...)) == true {
+				if needToDeleteKey > -1 {
+					mt.cl.pc.Set(metainfo.PieceKey{mt.ih, needToDeleteKey}, false)
+				}
+			}
 			return len(b), nil
 		}
 		// Add zero bytes to the end of data
-        if lruStorage.Add(key, append(dataInterface.([]byte), make([]byte, iend-len(dataInterface.([]byte)))...)) == true {
-            if needToDeleteKey > -1 {
-                mt.cl.pc.Set(metainfo.PieceKey { mt.ih, needToDeleteKey }, false)
-            }
-        }
+		if lruStorage.Add(key, append(dataInterface.([]byte), make([]byte, iend-len(dataInterface.([]byte)))...)) == true {
+			if needToDeleteKey > -1 {
+				mt.cl.pc.Set(metainfo.PieceKey{mt.ih, needToDeleteKey}, false)
+			}
+		}
 	}
 
-    dataInterface, present = lruStorage.Get(key)
-    if present == false {
-        dataInterface = []byte{}
-    }
+	dataInterface, present = lruStorage.Get(key)
+	if present == false {
+		dataInterface = []byte{}
+	}
 
 	copy(dataInterface.([]byte)[ioff:], b)
 	if lruStorage.Add(key, dataInterface.([]byte)) == true {
-        if needToDeleteKey > -1 {
-            mt.cl.pc.Set(metainfo.PieceKey { mt.ih, needToDeleteKey }, false)
-        }
-    }
+		if needToDeleteKey > -1 {
+			mt.cl.pc.Set(metainfo.PieceKey{mt.ih, needToDeleteKey}, false)
+		}
+	}
 
-    // Before return check if need to free up some memory
-    FreeMemoryPercent(mt, uint64(maxMemorySize), 15)
+	if newPiece {
+		//log.Printf("Added new piece to LRU: %d, LRU space: %d/%d", key, lruStorage.Len(), maxCount)
+		//logMemStats()
+	}
+
+	// Before return check if need to free up some memory
+	FreeMemoryPercent(mt, uint64(maxMemorySize), 15)
 
 	return len(b), nil
 }
 
 func storageReadAt(mu *sync.Mutex, key int, b []byte, off int64) (int, error) {
-    dataInterface, present := lruStorage.Get(key)
-    if present == false {
-    	dataInterface = []byte{}
-    }
+	dataInterface, present := lruStorage.Get(key)
+	if present == false {
+		dataInterface = []byte{}
+	}
 
-    ioff := int(off)
+	ioff := int(off)
 	if len(dataInterface.([]byte)) <= ioff {
 		return 0, io.EOF
 	}
@@ -120,41 +127,47 @@ func storageReadAt(mu *sync.Mutex, key int, b []byte, off int64) (int, error) {
 	return len(b), nil
 }
 
-func storageDelete(mu *sync.Mutex) {
-	mu.Lock()
-    defer mu.Unlock()
+func FreeMemoryPercent(mt *memoryTorrent, threshold uint64, percent int) {
+	runtime.ReadMemStats(&memStats)
 
-    setMaxCount = true
+	if (memStats.Alloc / megaByte) > threshold {
+		var deleteCount = (maxCount * percent) / 100
 
-    lruStorage.Purge()
+		if deleteCount == 0 {
+			deleteCount++
+		}
 
-    needToDeleteKey = -1
+		log.Printf("Freeing up memory, currently allocated: %v MB\n", (memStats.Alloc / megaByte))
 
-    runtime.GC()
+		for i := 0; i < deleteCount; i++ {
+			key, _, ok := lruStorage.RemoveOldest()
+			if ok == true {
+				if needToDeleteKey > -1 {
+					mt.cl.pc.Set(metainfo.PieceKey{mt.ih, key.(int)}, false)
+				}
+			}
+		}
+
+		needToDeleteKey = -1
+
+		runtime.GC()
+	}
 }
 
-func FreeMemoryPercent(mt *memoryTorrent, threshold uint64, percent int) {
-    runtime.ReadMemStats(&memStats)
+func storageDelete(mu *sync.Mutex) {
+	mu.Lock()
+	defer mu.Unlock()
 
-    if memStats.Alloc / (1 << 20) > threshold { // + ((threshold * uint64(percent)) / 100) {
-        //log.Printf("Alloc = %v MiB, NumGC = %v\n", memStats.Alloc / (1 << 20), memStats.NumGC)
-        var deleteCount = (maxCount * percent) / 100
+	setMaxCount = true
 
-        if deleteCount == 0 {
-            deleteCount++
-        }
+	lruStorage.Purge()
 
-        for i := 0; i < deleteCount; i++ {
-            key, _, ok := lruStorage.RemoveOldest()
-            if ok == true {
-                if needToDeleteKey > -1 {
-                    mt.cl.pc.Set(metainfo.PieceKey { mt.ih, key.(int) }, false)
-                }
-            }
-        }
-        //log.Println(lruStorage.Len())
-        needToDeleteKey = -1
+	needToDeleteKey = -1
 
-        runtime.GC()
-    }
+	runtime.GC()
+}
+
+func logMemStats() {
+	runtime.ReadMemStats(&memStats)
+	log.Printf("Currently allocated memory: %v MB, NumGC: %v", (memStats.Alloc / megaByte), memStats.NumGC)
 }

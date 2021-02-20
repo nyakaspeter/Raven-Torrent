@@ -25,9 +25,7 @@ import (
 const (
 	version        = "0.4.1"
 	resolveTimeout = time.Second * 35
-
-	// Maximum 16 MByte torrent piece length supported.
-	maxPieceLength = 1 << 24
+	megaByte       = 1024 * 1024
 )
 
 // Torrent lock structure
@@ -48,13 +46,17 @@ var receiverEnabled bool = false
 var receivedHash string = ""
 var receivedTorrent *metainfo.MetaInfo = nil
 
+// Maximum supported torrent piece length
+var maxPieceLength int64 = 16
+
 func startTorrentClient(settings serviceSettings) *torrent.Client {
 	torrents = make(map[string]*torrentLeaf)
 
 	cfg := torrent.NewDefaultClientConfig()
 
 	if *settings.StorageType == "memory" {
-		memorystorage.SetMaxMemorySize(*settings.MemorySize)
+		maxPieceLength = *settings.MemorySize / 8
+		memorystorage.SetMemorySize(*settings.MemorySize, maxPieceLength)
 		cfg.DefaultStorage = memorystorage.NewMemoryStorage()
 	} else if *settings.StorageType == "piecefile" {
 		cfg.DefaultStorage = fat32storage.NewFat32Storage(*settings.DownloadDir)
@@ -165,7 +167,7 @@ func addMagnet(uri string) *torrent.Torrent {
 
 	select {
 	case <-t.GotInfo():
-		if t.Info().PieceLength <= maxPieceLength {
+		if t.Info().PieceLength <= (maxPieceLength * megaByte) {
 			torrents[t.InfoHash().String()] = &torrentLeaf{
 				torrent:     t,
 				progress:    0,
@@ -224,7 +226,8 @@ func getFileByPath(search string, files []*torrent.File) int {
 func serveTorrentFile(w http.ResponseWriter, r *http.Request, file *torrent.File) {
 	reader := file.NewReader()
 	// Never set a smaller buffer than the maximum torrent piece length!
-	reader.SetReadahead(maxPieceLength)
+	reader.SetReadahead(maxPieceLength * megaByte)
+	reader.SetResponsive()
 
 	path := file.FileInfo().Path
 	fname := ""

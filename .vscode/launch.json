@@ -18,7 +18,7 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}",
-      "args": ["-log"]
+      "args": ["-log", "-memorysize", "64"]
     },
     {
       "name": "Memory Storage 128M",
