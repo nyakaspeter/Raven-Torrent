@@ -4,6 +4,7 @@ import (
 	//"fmt"
 	"io"
 	"log"
+	"math"
 	"runtime"
 	"sync"
 
@@ -13,11 +14,11 @@ import (
 
 const megaByte = 1024 * 1024
 
-var maxMemorySize int64 = 128 // Maximum memory size in MByte
+var maxMemorySize int64 // Maximum memory size in MByte
 
-var maxPieceLength int64 = 16 // Maximum piece length in MByte
+var maxPieceLength int64 // Maximum piece length in MByte
 
-var maxCount = 8 // Number of pieces that LRU cache can hold
+var maxCount int // Number of pieces that LRU cache can hold
 
 var lruStorage *lru.Cache
 
@@ -36,8 +37,8 @@ func SetMemorySize(memorySize int64, pieceLength int64) {
 
 func onEvicted(key interface{}, value interface{}) {
 	needToDeleteKey = key.(int)
+	runtime.GC()
 	//log.Printf("Removed piece from LRU: %d, LRU space: %d/%d", needToDeleteKey, lruStorage.Len(), maxCount)
-	//logMemStats()
 }
 
 // Restricting all I/O through a single mutex, which would stop simultanious read/writes.
@@ -46,7 +47,8 @@ func storageWriteAt(mt *memoryTorrent, key int, b []byte, off int64) (int, error
 	defer mt.storageMutex.Unlock()
 
 	if setMaxCount == true {
-		elementCount := int(maxMemorySize * megaByte / mt.pl)
+		// 75% of max memory size for LRU cache will keep memory allocation approximately in the right bounds
+		elementCount := int(math.Floor(float64(maxMemorySize*megaByte) / float64(mt.pl) * 75 / 100))
 
 		if maxCount != elementCount {
 			lruStorage.Resize(elementCount)
@@ -103,7 +105,7 @@ func storageWriteAt(mt *memoryTorrent, key int, b []byte, off int64) (int, error
 	}
 
 	// Before return check if need to free up some memory
-	FreeMemoryPercent(mt, uint64(maxMemorySize), 15)
+	//FreeMemoryPercent(mt, uint64(maxMemorySize), 15)
 
 	return len(b), nil
 }
@@ -169,5 +171,5 @@ func storageDelete(mu *sync.Mutex) {
 
 func logMemStats() {
 	runtime.ReadMemStats(&memStats)
-	log.Printf("Currently allocated memory: %v MB, NumGC: %v", (memStats.Alloc / megaByte), memStats.NumGC)
+	log.Printf("Memory storage allocated memory: %v MB, NumGC: %v, LRU: %v/%v", (memStats.Alloc / megaByte), memStats.NumGC, lruStorage.Len(), maxCount)
 }

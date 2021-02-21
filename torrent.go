@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"sort"
 	"time"
@@ -55,7 +56,7 @@ func startTorrentClient(settings serviceSettings) *torrent.Client {
 	cfg := torrent.NewDefaultClientConfig()
 
 	if *settings.StorageType == "memory" {
-		maxPieceLength = *settings.MemorySize / 8
+		maxPieceLength = int64(math.Floor(float64(*settings.MemorySize) * 100 / 75 / 8))
 		memorystorage.SetMemorySize(*settings.MemorySize, maxPieceLength)
 		cfg.DefaultStorage = memorystorage.NewMemoryStorage()
 	} else if *settings.StorageType == "piecefile" {
@@ -175,15 +176,18 @@ func addMagnet(uri string) *torrent.Torrent {
 				fileclients: make(map[string]int),
 			}
 			gettingTorrent = false
+			receivedTorrent = nil
 			return t
 		} else {
 			t.Drop()
 			gettingTorrent = false
+			receivedTorrent = nil
 			return nil
 		}
 	case <-time.After(resolveTimeout):
 		t.Drop()
 		gettingTorrent = false
+		receivedTorrent = nil
 		return nil
 	}
 }

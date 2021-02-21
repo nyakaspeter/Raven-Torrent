@@ -46,18 +46,18 @@
 - **-background** run the server in the background
 - **-cors** enable CORS
 - **-dir** `string` specify the directory where files will be downloaded to if storagetype is set to "piecefile" or "file"
-- **-downrate** `int` download speed rate in Kbps (`default 32768`)
+- **-downrate** `int` download speed rate in Kbps (`default 0`) (0 is unlimited speed)
 - **-help** print this help message
 - **-host** `string` listening server ip
 - **-log** enable log messages
-- **-maxconn** `int` max connections per torrent (`default 40`)
+- **-maxconn** `int` max connections per torrent (`default 50`)
 - **-memorysize** `int` specify the storage memory size in MB if storagetype is set to "memory" (minimum 64) (`default 128`)
 - **-nodht** disable dht
 - **-osuseragent**`string` set external OpenSubtitles user agent
 - **-port** `int` listening port (`default 9000`)
 - **-storagetype**`string` select storage type (must be set to "memory" or "piecefile" or "file") (`default "memory"`)
 - **-tmdbkey**`string` set external TMDB API key
-- **-uprate** `int` upload speed rate in Kbps (`default 256`)
+- **-uprate** `int` upload speed rate in Kbps (`default 0`) (0 is upload disabled)
   <br/>
 
 ## Build Instructions
