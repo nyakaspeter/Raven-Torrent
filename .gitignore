@@ -6,3 +6,4 @@
 *.dylib
 wrserver*
 *__debug*
+.vs

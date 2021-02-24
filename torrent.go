@@ -2,13 +2,18 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
+	"encoding/base64"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 
 	alog "github.com/anacrolix/log"
@@ -44,7 +49,7 @@ var gettingTorrent bool = false
 
 // Torrent receiver settings
 var receiverEnabled bool = false
-var receivedHash string = ""
+var receiverResponse string = ""
 var receivedTorrent *metainfo.MetaInfo = nil
 
 // Maximum supported torrent piece length
@@ -125,15 +130,27 @@ func decFileClients(path string, t *torrentLeaf) int {
 	}
 }
 
-func addMagnet(uri string) *torrent.Torrent {
+func addTorrent(uri string) *torrent.Torrent {
 	var spec *torrent.TorrentSpec
 	var t *torrent.Torrent
 	var err error = nil
 
-	if receivedTorrent != nil {
+	if strings.HasPrefix(uri, "magnet:") {
+		// Add magnet link
+		spec, err = torrent.TorrentSpecFromMagnetURI(uri)
+		receivedTorrent = nil
+	} else if receivedTorrent != nil {
+		// Add previously received torrent file
 		spec = torrent.TorrentSpecFromMetaInfo(receivedTorrent)
 	} else {
-		spec, err = torrent.TorrentSpecFromMagnetURI(uri)
+		// Download torrent file from
+		r, e := fetchTorrent(uri)
+		if e != nil {
+			err = e
+		} else {
+			receivedTorrent, err = metainfo.Load(r)
+			spec = torrent.TorrentSpecFromMetaInfo(receivedTorrent)
+		}
 	}
 
 	if err != nil {
@@ -190,6 +207,41 @@ func addMagnet(uri string) *torrent.Torrent {
 		receivedTorrent = nil
 		return nil
 	}
+}
+
+func fetchTorrent(url string) (*bytes.Reader, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: tr}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, errors.New(resp.Status)
+		}
+		return nil, errors.New(string(b))
+	}
+
+	buf := &bytes.Buffer{}
+
+	_, err = io.Copy(buf, resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewReader(buf.Bytes()), nil
 }
 
 func stopDownloadFile(file *torrent.File) {
@@ -308,7 +360,7 @@ func createServerPage() string {
 			                        infodiv.style.display = "block";
 
 			                        if (socket.readyState == 1) {
-			                        	socket.send(result[1]);
+			                        	socket.send(magnetlink);
 			                        } else {
 			                        	infodiv.className = "alert alert-danger";
                         				infodiv.innerHTML = "<strong>ERROR!</strong> UNABLE TO ADD MAGNET LINK!";
@@ -705,12 +757,11 @@ func createServerPage() string {
 	return html
 }
 
-func setReceivedMagnetHash(hash string) string {
+func setReceivedMagnet(magnet string) string {
 	if receiverEnabled == true {
-		log.Println("Received magnet hash:", hash)
+		log.Println("Received magnet link:", magnet)
 
-		receivedTorrent = nil
-		receivedHash = hash
+		receiverResponse = base64.StdEncoding.EncodeToString([]byte(magnet))
 		receiverEnabled = false
 		return "ok"
 	} else {
@@ -720,11 +771,11 @@ func setReceivedMagnetHash(hash string) string {
 
 func setReceivedTorrent(mi *metainfo.MetaInfo) string {
 	if receiverEnabled == true {
-		hash := torrent.TorrentSpecFromMetaInfo(mi).InfoHash.String()
-		log.Println("Received torrent hash:", hash)
+		spec := torrent.TorrentSpecFromMetaInfo(mi)
+		log.Println("Received torrent file:", spec.DisplayName)
 
 		receivedTorrent = mi
-		receivedHash = hash
+		receiverResponse = base64.StdEncoding.EncodeToString([]byte(spec.DisplayName))
 		receiverEnabled = false
 		return "ok"
 	} else {
@@ -732,18 +783,20 @@ func setReceivedTorrent(mi *metainfo.MetaInfo) string {
 	}
 }
 
-func checkReceivedMagnetHash(todo string) string {
+func checkReceiver(todo string) string {
 	if todo == "start" {
 		receiverEnabled = true
-		receivedHash = ""
+		receiverResponse = ""
+		receivedTorrent = nil
 		return "{\"response\":\"ok\"}"
 	} else if todo == "check" {
 		// Wait 3 second because Long Polling
 		time.Sleep(3 * time.Second)
-		return "{\"infohash\":\"" + receivedHash + "\"}"
+		return "{\"infohash\":\"" + receiverResponse + "\"}"
 	} else if todo == "stop" {
 		receiverEnabled = false
-		receivedHash = ""
+		receiverResponse = ""
+		receivedTorrent = nil
 		return "{\"response\":\"ok\"}"
 	} else {
 		return "{\"response\":\"unknown\"}"

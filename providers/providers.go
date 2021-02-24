@@ -2,19 +2,21 @@ package providers
 
 import (
 	"net/url"
-	"strings"
 	"sort"
 	"strconv"
+	"strings"
 
-	"github.com/silentmurdock/wrserver/providers/yts"
-	"github.com/silentmurdock/wrserver/providers/pt"
 	"github.com/silentmurdock/wrserver/providers/eztv"
-	"github.com/silentmurdock/wrserver/providers/pto"
-	"github.com/silentmurdock/wrserver/providers/tmdb"
 	"github.com/silentmurdock/wrserver/providers/itorrent"
-	"github.com/silentmurdock/wrserver/providers/rarbg"
-	"github.com/silentmurdock/wrserver/providers/x1337x"
+	"github.com/silentmurdock/wrserver/providers/jackett"
 	out "github.com/silentmurdock/wrserver/providers/output"
+	"github.com/silentmurdock/wrserver/providers/pt"
+	"github.com/silentmurdock/wrserver/providers/pto"
+	"github.com/silentmurdock/wrserver/providers/rarbg"
+	"github.com/silentmurdock/wrserver/providers/tmdb"
+	"github.com/silentmurdock/wrserver/providers/tvmaze"
+	"github.com/silentmurdock/wrserver/providers/x1337x"
+	"github.com/silentmurdock/wrserver/providers/yts"
 )
 
 func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputMovieStruct {
@@ -26,22 +28,25 @@ func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputM
 	if imdbid != "" {
 		for _, source := range sources {
 			switch strings.ToLower(source) {
+			case "jackett":
+				go jackett.GetMovieMagnetByImdb(imdbid, ch)
+				counter++
 			case "pt":
-		        go pt.GetMovieMagnetByImdb(imdbid, ch)
-		        counter++
-		    case "yts":
-		    	go yts.GetMovieMagnetByImdb(imdbid, ch)
-		    	counter++
-		    case "itorrent":
-		        go itorrent.GetMovieMagnetByImdb(imdbid, ch)
-		        counter++
-		    case "pto":
-		        go pto.GetMovieMagnetByImdb(imdbid, ch)
-		        counter++
-		    case "rarbg":
-		        go rarbg.GetMovieMagnetByImdb(imdbid, ch)
-		        counter++
-		    }	    
+				go pt.GetMovieMagnetByImdb(imdbid, ch)
+				counter++
+			case "yts":
+				go yts.GetMovieMagnetByImdb(imdbid, ch)
+				counter++
+			case "rarbg":
+				go rarbg.GetMovieMagnetByImdb(imdbid, ch)
+				counter++
+			case "pto":
+				go pto.GetMovieMagnetByImdb(imdbid, ch)
+				counter++
+			case "itorrent":
+				go itorrent.GetMovieMagnetByImdb(imdbid, ch)
+				counter++
+			}
 		}
 	}
 
@@ -50,41 +55,45 @@ func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputM
 		if err == nil {
 			for _, source := range sources {
 				switch strings.ToLower(source) {
-			    case "1337x":
-			        go x1337x.GetMovieMagnetByQuery(params, ch)
-			        counter++
-			    }
+				case "jackett":
+					go jackett.GetMovieMagnetByQuery(params, ch)
+					counter++
+				case "1337x":
+					go x1337x.GetMovieMagnetByQuery(params, ch)
+					counter++
+				}
 			}
 		}
 	}
 
 	for counter > 0 {
-		temp := <-ch	    
-	    if len(temp) > 0 {
-	    	if len(outputMovieData) > 0 {
-		    	for _, item := range temp {
-		    		duplicate := false
-		    		for i, output := range outputMovieData {
-		    			if strings.ToLower(output.Hash) == strings.ToLower(item.Hash) {
-		    				duplicate = true
-		    				if outputMovieData[i].Size == "0" && item.Size != "0" {
-		    					outputMovieData[i].Size = item.Size
-		    					outputMovieData[i].Title = item.Title
-		    				}
-		    			}
-		    		}
+		temp := <-ch
+		if len(temp) > 0 {
+			if len(outputMovieData) > 0 {
+				for _, item := range temp {
+					duplicate := false
+					for i, output := range outputMovieData {
+						if (output.Hash != "" && strings.ToLower(output.Hash) == strings.ToLower(item.Hash)) ||
+							(output.Torrent != "" && output.Provider == item.Provider && output.Title == item.Title) {
+							duplicate = true
+							if outputMovieData[i].Size == "0" && item.Size != "0" {
+								outputMovieData[i].Size = item.Size
+								outputMovieData[i].Title = item.Title
+							}
+						}
+					}
 
-		    		if duplicate == false {
-		    			outputMovieData = append(outputMovieData, item)
-		    		}		    		
-		    	}
-		    } else {
-		    	for _, item := range temp {
-		    		outputMovieData = append(outputMovieData, item)
-		    	}
-		    }
-	    }
-	    counter--	    
+					if duplicate == false {
+						outputMovieData = append(outputMovieData, item)
+					}
+				}
+			} else {
+				for _, item := range temp {
+					outputMovieData = append(outputMovieData, item)
+				}
+			}
+		}
+		counter--
 	}
 
 	// Sort by seeds in descending order
@@ -93,7 +102,7 @@ func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputM
 		sj, _ := strconv.ParseInt(outputMovieData[j].Seeds, 10, 64)
 		return si > sj
 	})
-	
+
 	return outputMovieData
 }
 
@@ -106,19 +115,19 @@ func GetShowMagnet(imdbid string, query string, season string, episode string, s
 	if imdbid != "" {
 		for _, source := range sources {
 			switch strings.ToLower(source) {
-		    case "eztv":
-		        go eztv.GetShowMagnetByImdb(imdbid, season, episode, ch)
-		        counter++
-		    case "pt":
-		        go pt.GetShowMagnetByImdb(imdbid, season, episode, ch)
-		        counter++
-		    case "itorrent":
-		        go itorrent.GetShowMagnetByImdb(imdbid, season, episode, ch)
-		        counter++
-		    case "rarbg":
-		    	go rarbg.GetShowMagnetByImdb(imdbid, season, episode, ch)
-		    	counter++
-		    }
+			case "pt":
+				go pt.GetShowMagnetByImdb(imdbid, season, episode, ch)
+				counter++
+			case "eztv":
+				go eztv.GetShowMagnetByImdb(imdbid, season, episode, ch)
+				counter++
+			case "rarbg":
+				go rarbg.GetShowMagnetByImdb(imdbid, season, episode, ch)
+				counter++
+			case "itorrent":
+				go itorrent.GetShowMagnetByImdb(imdbid, season, episode, ch)
+				counter++
+			}
 		}
 	}
 
@@ -127,41 +136,45 @@ func GetShowMagnet(imdbid string, query string, season string, episode string, s
 		if err == nil {
 			for _, source := range sources {
 				switch strings.ToLower(source) {
-			    case "1337x":
-			        go x1337x.GetShowMagnetByQuery(params, season, episode, ch)
-			        counter++
-			    }
+				case "jackett":
+					go jackett.GetShowMagnetByQuery(params, season, episode, ch)
+					counter++
+				case "1337x":
+					go x1337x.GetShowMagnetByQuery(params, season, episode, ch)
+					counter++
+				}
 			}
 		}
 	}
 
 	for counter > 0 {
 		temp := <-ch
-	    if len(temp) > 0 {
-	    	if len(outputShowData) > 0 {
-		    	for _, item := range temp {
-		    		duplicate := false
-		    		for i, output := range outputShowData {
-		    			if strings.ToLower(output.Hash) == strings.ToLower(item.Hash) {
-		    				duplicate = true
-		    				if outputShowData[i].Size == "0" && item.Size != "0" {
-		    					outputShowData[i].Size = item.Size
-		    					outputShowData[i].Title = item.Title
-		    				}
-		    			}
-		    		}
+		if len(temp) > 0 {
+			if len(outputShowData) > 0 {
+				for _, item := range temp {
+					duplicate := false
+					for i, output := range outputShowData {
+						if (output.Hash != "" && strings.ToLower(output.Hash) == strings.ToLower(item.Hash)) ||
+							(output.Torrent != "" && output.Provider == item.Provider && output.Title == item.Title) {
+							duplicate = true
+							if outputShowData[i].Size == "0" && item.Size != "0" {
+								outputShowData[i].Size = item.Size
+								outputShowData[i].Title = item.Title
+							}
+						}
+					}
 
-		    		if duplicate == false {
-		    			outputShowData = append(outputShowData, item)
-		    		}		    		
-		    	}
-		    } else {
-		    	for _, item := range temp {
-		    		outputShowData = append(outputShowData, item)
-		    	}
-		    }
-	    }
-	    counter--
+					if duplicate == false {
+						outputShowData = append(outputShowData, item)
+					}
+				}
+			} else {
+				for _, item := range temp {
+					outputShowData = append(outputShowData, item)
+				}
+			}
+		}
+		counter--
 	}
 
 	// Sort by seeds in descending order
@@ -170,12 +183,16 @@ func GetShowMagnet(imdbid string, query string, season string, episode string, s
 		sj, _ := strconv.ParseInt(outputShowData[j].Seeds, 10, 64)
 		return si > sj
 	})
-	
+
 	return outputShowData
 }
 
 func SetTMDBKey(tmdbKey string) {
 	tmdb.SetTMDBKey(tmdbKey)
+}
+
+func SetJackettAddressAndKey(jackettAddress string, jackettKey string) {
+	jackett.SetJackettAddressAndKey(jackettAddress, jackettKey)
 }
 
 func MirrorTmdbDiscover(qtype string, genretype string, sort string, date string, lang string, cpage string) string {
@@ -188,4 +205,13 @@ func MirrorTmdbSearch(qtype string, lang string, cpage string, typedtext string)
 
 func MirrorTmdbInfo(qtype string, tmdbid string, lang string) string {
 	return tmdb.MirrorTmdbInfo(qtype, tmdbid, lang)
+}
+
+func GetShowEpisodes(query string) string {
+	params, err := url.ParseQuery(query)
+	if err != nil {
+		return "[]"
+	}
+	tvmazeId := tvmaze.GetTvmazeIdByImdbOrTvdbId(params)
+	return tvmaze.GetEpisodesByTvmazeId(tvmazeId)
 }

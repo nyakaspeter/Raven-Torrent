@@ -49,6 +49,10 @@ func setTMDBKey(tmdbKey string) {
 	providers.SetTMDBKey(tmdbKey)
 }
 
+func setJackettAddressAndKey(jackettAddress string, jackettKey string) {
+	providers.SetJackettAddressAndKey(jackettAddress, jackettKey)
+}
+
 func fetchZip(zipurl string) (*zip.Reader, error) {
 	req, err := http.NewRequest("GET", zipurl, nil)
 	if err != nil {
@@ -167,17 +171,31 @@ func handleAPI(cors bool) {
 
 	routerAPI.HandleFunc(urlAPI+"add/{hash}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		magnet := "magnet:?xt=urn:btih:" + vars["hash"]
+		hash := vars["hash"]
+		link := ""
+
+		if len(hash) == 40 || len(hash) == 32 {
+			link = "magnet:?xt=urn:btih:" + hash
+		} else {
+			base64link, err := base64.StdEncoding.DecodeString(hash)
+
+			if err != nil {
+				http.Error(w, failedToAddTorrent(), http.StatusNotFound)
+				return
+			}
+
+			link = string(base64link)
+		}
 
 		for tryCount := 0; tryCount < 4; tryCount++ {
 			if tryCount > 0 {
 				time.Sleep(10 * time.Second)
 			}
 
-			t := addMagnet(magnet)
+			t := addTorrent(link)
 
 			if t != nil {
-				log.Println("Add torrent:", vars["hash"])
+				log.Println("Add torrent:", link)
 				io.WriteString(w, torrentFilesList(r.Host, t.Files()))
 				return
 			} else if len(torrents) == 0 {
@@ -752,9 +770,22 @@ func handleAPI(cors bool) {
 		}
 	})
 
+	routerAPI.HandleFunc(urlAPI+"getshowepisodes/{query}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		log.Println("Get TV show episodes")
+
+		output := providers.GetShowEpisodes(vars["query"])
+
+		if output != "[]" {
+			io.WriteString(w, output)
+		} else {
+			http.Error(w, noTvmazeDataFound(), http.StatusNotFound)
+		}
+	})
+
 	routerAPI.HandleFunc(urlAPI+"receivemagnet/{todo}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		io.WriteString(w, checkReceivedMagnetHash(vars["todo"]))
+		io.WriteString(w, checkReceiver(vars["todo"]))
 	})
 
 	routerAPI.HandleFunc(urlAPI+"websocket", func(w http.ResponseWriter, r *http.Request) {
@@ -780,7 +811,7 @@ func handleAPI(cors bool) {
 						procQuit <- true
 					}()
 				} else {
-					value := setReceivedMagnetHash(string(message))
+					value := setReceivedMagnet(string(message))
 					if err = ws.WriteMessage(1, []byte("{\"function\":\"sendmagnet\",\"data\":\""+value+"\"}")); err != nil {
 						return
 					}

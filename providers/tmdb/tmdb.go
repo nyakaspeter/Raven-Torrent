@@ -4,13 +4,13 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"io/ioutil"
-	"net/http"	
+	"net/http"
 	"time"
 )
 
 type tmdbResponse struct {
-    TotalResults int `json:"total_results"`
-    Id int `json:"id"`
+	TotalResults int `json:"total_results"`
+	Id           int `json:"id"`
 }
 
 var TMDBKey string = ""
@@ -21,7 +21,7 @@ func SetTMDBKey(tmdbKey string) {
 
 func MirrorTmdbDiscover(qtype string, genretype string, sort string, date string, lang string, cpage string) string {
 	requesturl := ""
-	
+
 	if qtype == "movie" {
 		if genretype == "all" {
 			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TMDBKey + "&sort_by=" + sort + "&release_date.lte=" + date + "&with_original_language=en&region=US&with_release_type=5&language=" + lang + "&page=" + cpage
@@ -41,11 +41,11 @@ func MirrorTmdbDiscover(qtype string, genretype string, sort string, date string
 		return ""
 	}
 
-	//req.Header.Set("User-Agent", UserAgent)	
+	//req.Header.Set("User-Agent", UserAgent)
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	
+
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -63,21 +63,21 @@ func MirrorTmdbDiscover(qtype string, genretype string, sort string, date string
 	if err != nil || message.TotalResults == 0 {
 		return ""
 	}
-	
+
 	return string(body)
 }
 
 func MirrorTmdbSearch(qtype string, lang string, cpage string, typedtext string) string {
-	req, err := http.NewRequest("GET", "https://api.themoviedb.org/3/search/" + qtype + "?api_key=" + TMDBKey + "&language=" + lang + "&page=" + cpage + "&query=" + typedtext, nil)
+	req, err := http.NewRequest("GET", "https://api.themoviedb.org/3/search/"+qtype+"?api_key="+TMDBKey+"&language="+lang+"&page="+cpage+"&query="+typedtext, nil)
 	if err != nil {
 		return ""
 	}
 
-	//req.Header.Set("User-Agent", UserAgent)	
+	//req.Header.Set("User-Agent", UserAgent)
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	
+
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -95,14 +95,14 @@ func MirrorTmdbSearch(qtype string, lang string, cpage string, typedtext string)
 	if err != nil || message.TotalResults == 0 {
 		return ""
 	}
-	
+
 	return string(body)
 }
 
 func MirrorTmdbInfo(qtype string, tmdbid string, lang string) string {
-	requesturl := "https://api.themoviedb.org/3/" + qtype + "/" + tmdbid +"?api_key=" + TMDBKey + "&language=" + lang
+	requesturl := "https://api.themoviedb.org/3/" + qtype + "/" + tmdbid + "?api_key=" + TMDBKey + "&language=" + lang
 	if qtype == "tv" {
-		requesturl = "https://api.themoviedb.org/3/" + qtype + "/" + tmdbid +"?api_key=" + TMDBKey + "&append_to_response=external_ids&language=" + lang
+		requesturl = "https://api.themoviedb.org/3/" + qtype + "/" + tmdbid + "?api_key=" + TMDBKey + "&append_to_response=external_ids&language=" + lang
 	}
 
 	req, err := http.NewRequest("GET", requesturl, nil)
@@ -110,11 +110,11 @@ func MirrorTmdbInfo(qtype string, tmdbid string, lang string) string {
 		return ""
 	}
 
-	//req.Header.Set("User-Agent", UserAgent)	
+	//req.Header.Set("User-Agent", UserAgent)
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
-	
+
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -132,6 +132,6 @@ func MirrorTmdbInfo(qtype string, tmdbid string, lang string) string {
 	if err != nil || message.Id == 0 {
 		return ""
 	}
-	
+
 	return string(body)
 }

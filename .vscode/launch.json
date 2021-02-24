@@ -26,7 +26,15 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}",
-      "args": ["-log", "-memorysize", "128"]
+      "args": [
+        "-log",
+        "-memorysize",
+        "128",
+        "-jackettaddress",
+        "http://192.168.0.2:9117",
+        "-jackettkey",
+        "e1mraldyss0sp70gkk7pdf2yxlibg1gl"
+      ]
     }
   ]
 }

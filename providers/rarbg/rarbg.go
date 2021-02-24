@@ -1,29 +1,28 @@
 package rarbg
 
 import (
-	"net/http"
-	"io/ioutil"
-	"encoding/json"
-	"strconv"
-	"strings"
 	"crypto/tls"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 	"time"
 
 	out "github.com/silentmurdock/wrserver/providers/output"
 )
 
 type sessionToken struct {
-	Token string
+	Token     string
 	StartTime time.Time
-	MaxTime float64
-	WaitTime int64
+	MaxTime   float64
+	WaitTime  int64
 }
 
-var token = sessionToken {
-	Token: "",
+var token = sessionToken{
+	Token:     "",
 	StartTime: time.Now(),
-	MaxTime: 890, // Seconds
-	WaitTime: 2100, // Milliseconds
+	MaxTime:   890,  // Seconds
+	WaitTime:  2100, // Milliseconds
 }
 
 var tryCount = 0
@@ -34,63 +33,63 @@ type apiTokenResponse struct {
 
 type apiMovieResponse struct {
 	TorrentResults []struct {
-		Title string `json:"title"`
+		Title    string `json:"title"`
 		Category string `json:"category"`
 		Download string `json:"download"`
-		Seeders int64 `json:"seeders"`
-		Leechers int64 `json:"leechers"`
-		Size int64  `json:"size"`
+		Seeders  int64  `json:"seeders"`
+		Leechers int64  `json:"leechers"`
+		Size     int64  `json:"size"`
 	} `json:"torrent_results"`
 	Error string `json:"error"`
 }
 
 type apiShowResponse struct {
 	TorrentResults []struct {
-		Title string `json:"title"`
-		Category string `json:"category"`
-		Download string `json:"download"`
-		Seeders int64 `json:"seeders"`
-		Leechers int64 `json:"leechers"`
-		Size int64  `json:"size"`
+		Title       string `json:"title"`
+		Category    string `json:"category"`
+		Download    string `json:"download"`
+		Seeders     int64  `json:"seeders"`
+		Leechers    int64  `json:"leechers"`
+		Size        int64  `json:"size"`
 		EpisodeInfo struct {
 			SeasonNum string `json:"seasonnum"`
-			EpNum string `json:"epnum"`
-			Title string `json:"title"`
+			EpNum     string `json:"epnum"`
+			Title     string `json:"title"`
 		} `json:"episode_info"`
 	} `json:"torrent_results"`
 	Error string `json:"error"`
 }
 
-func getToken () bool {
+func getToken() bool {
 	var url = "https://torrentapi.org/pubapi_v2.php?get_token=get_token&app_id=whiteraven"
 
 	if token.Token == "" || (token.Token != "" && time.Since(token.StartTime).Seconds() > token.MaxTime) {
-		//req.Header.Set("User-Agent", UserAgent)	
+		//req.Header.Set("User-Agent", UserAgent)
 		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		
+
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
-		
+
 		res, err := client.Get(url)
 		if err != nil {
-	        return false
-	    }
-	    defer res.Body.Close()
+			return false
+		}
+		defer res.Body.Close()
 
-	    body, err := ioutil.ReadAll(res.Body)
-	    if err != nil {
-	        return false
-	    }
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return false
+		}
 
 		var apiResponse apiTokenResponse
 		json.Unmarshal(body, &apiResponse)
-		
+
 		if apiResponse.Token != "" {
 			token.Token = apiResponse.Token
 			token.StartTime = time.Now()
 			return true
-		} else  {
+		} else {
 			return false
 		}
 	} else {
@@ -98,36 +97,20 @@ func getToken () bool {
 	}
 }
 
-
-func guessQualityFromString(value string) string {
-	// Try to decode quality information from string (url, title, filename)
-    lowstr := strings.ToLower(value)	
-	quality := "HDTV"
-	switch lowstr {
-	case "movies/x264/1080":
-		quality = "1080p"
-	case "movies/x264/720":
-		quality = "720p"
-	case "movies/xvid/720":
-		quality = "720p"
-	}
-	return quality
-}
-
-func GetMovieMagnetByImdb(imdb string, ch chan<-[]out.OutputMovieStruct) {
+func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
 	if getToken() {
 		time.Sleep(time.Millisecond * time.Duration(token.WaitTime))
-		req, err := http.NewRequest("GET", "https://torrentapi.org/pubapi_v2.php?mode=search&app_id=whiteraven&format=json_extended&category=14;48;17;44;45&limit=25&min_seeders=1&sort=seeders&search_imdb=" + imdb + "&token=" + token.Token, nil)
+		req, err := http.NewRequest("GET", "https://torrentapi.org/pubapi_v2.php?mode=search&app_id=whiteraven&format=json_extended&category=14;48;17;44;45;47;50;51;52;46;54&limit=50&min_seeders=1&sort=seeders&search_imdb="+imdb+"&token="+token.Token, nil)
 		if err != nil {
 			ch <- []out.OutputMovieStruct{}
 			return
 		}
 
-		//req.Header.Set("User-Agent", UserAgent)	
+		//req.Header.Set("User-Agent", UserAgent)
 		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		
+
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
@@ -148,7 +131,7 @@ func GetMovieMagnetByImdb(imdb string, ch chan<-[]out.OutputMovieStruct) {
 			ch <- []out.OutputMovieStruct{}
 			return
 		}
-		
+
 		if response.Error != "" && tryCount < 3 {
 			//fmt.Println(response.Error, tryCount, token.Token)
 			tryCount++
@@ -165,19 +148,20 @@ func GetMovieMagnetByImdb(imdb string, ch chan<-[]out.OutputMovieStruct) {
 		outputMovieData := []out.OutputMovieStruct{}
 
 		for _, thistorrent := range response.TorrentResults {
-			temp := out.OutputMovieStruct {
-			    Hash: out.GetInfoHash(thistorrent.Download),
-			    Quality: guessQualityFromString(thistorrent.Category),
-			    Size: strconv.FormatInt(thistorrent.Size, 10),
-			    Provider: "RARBG",
-			    Lang: "en",
-			    Title: thistorrent.Title,
-			    Seeds: strconv.FormatInt(thistorrent.Seeders, 10),
-			    Peers: strconv.FormatInt(thistorrent.Leechers, 10),
+			temp := out.OutputMovieStruct{
+				Hash:     out.GetInfoHash(thistorrent.Download),
+				Quality:  out.GuessQualityFromString(thistorrent.Title),
+				Size:     strconv.FormatInt(thistorrent.Size, 10),
+				Provider: "RARBG",
+				Lang:     "en",
+				Title:    thistorrent.Title,
+				Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
+				Peers:    strconv.FormatInt(thistorrent.Leechers, 10),
+				Magnet:   thistorrent.Download,
 			}
 			outputMovieData = append(outputMovieData, temp)
 		}
-		
+
 		ch <- outputMovieData
 		return
 	} else {
@@ -186,27 +170,36 @@ func GetMovieMagnetByImdb(imdb string, ch chan<-[]out.OutputMovieStruct) {
 	}
 }
 
-// Search only the completed season pack
-func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<-[]out.OutputShowStruct) {
+func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- []out.OutputShowStruct) {
 	if getToken() {
 		query := ""
-		if len(season) == 1 {
-	        query = "s0" + season + "."
-	    } else {
-	        query = "s" + season + "."
-	    }
+		if season != "0" {
+			if len(season) == 1 {
+				query += "s0" + season
+			} else {
+				query += "s" + season
+			}
+		}
+		if episode != "0" {
+			if len(episode) == 1 {
+				query += "e0" + episode
+			} else {
+				query += "e" + episode
+			}
+		}
+
 		time.Sleep(time.Millisecond * time.Duration(token.WaitTime))
-		req, err := http.NewRequest("GET", "https://torrentapi.org/pubapi_v2.php?mode=search&app_id=whiteraven&format=json_extended&category=18;41&limit=25&min_seeders=1&sort=seeders&search_imdb=" + imdb + "&search_string=" + query + "&token=" + token.Token, nil)
+		req, err := http.NewRequest("GET", "https://torrentapi.org/pubapi_v2.php?mode=search&app_id=whiteraven&format=json_extended&category=18;41;49&limit=25&min_seeders=1&sort=seeders&search_imdb="+imdb+"&search_string="+query+"&token="+token.Token, nil)
 		if err != nil {
 			ch <- []out.OutputShowStruct{}
 			return
 		}
 
-		//req.Header.Set("User-Agent", UserAgent)	
+		//req.Header.Set("User-Agent", UserAgent)
 		tr := &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify : true},
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}
-		
+
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
@@ -227,7 +220,7 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<-[]
 			ch <- []out.OutputShowStruct{}
 			return
 		}
-		
+
 		if response.Error != "" && tryCount < 3 {
 			//fmt.Println(response.Error, tryCount, token.Token)
 			tryCount++
@@ -244,24 +237,22 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<-[]
 		outputShowData := []out.OutputShowStruct{}
 
 		for _, thistorrent := range response.TorrentResults {
-			lowTitle := strings.ToLower(thistorrent.EpisodeInfo.Title)
-			if strings.Contains(lowTitle, "season pack") == true {
-				temp := out.OutputShowStruct {
-				    Hash: out.GetInfoHash(thistorrent.Download),
-				    Quality: out.GuessQualityFromString(thistorrent.Title),
-				    Size: strconv.FormatInt(thistorrent.Size, 10),
-				    Provider: "RARBG",
-				    Lang: "en",
-				    Title: thistorrent.Title,
-				    Seeds: strconv.FormatInt(thistorrent.Seeders, 10),
-				    Peers: strconv.FormatInt(thistorrent.Leechers, 10),
-				    Season: thistorrent.EpisodeInfo.SeasonNum,
-				    Episode: "0",
-				}
-				outputShowData = append(outputShowData, temp)
+			temp := out.OutputShowStruct{
+				Hash:     out.GetInfoHash(thistorrent.Download),
+				Quality:  out.GuessQualityFromString(thistorrent.Title),
+				Size:     strconv.FormatInt(thistorrent.Size, 10),
+				Provider: "RARBG",
+				Lang:     "en",
+				Title:    thistorrent.Title,
+				Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
+				Peers:    strconv.FormatInt(thistorrent.Leechers, 10),
+				Season:   thistorrent.EpisodeInfo.SeasonNum,
+				Episode:  thistorrent.EpisodeInfo.EpNum,
+				Magnet:   thistorrent.Download,
 			}
+			outputShowData = append(outputShowData, temp)
 		}
-		
+
 		ch <- outputShowData
 		return
 	} else {

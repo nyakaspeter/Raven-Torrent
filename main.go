@@ -27,6 +27,8 @@ type serviceSettings struct {
 	CORS           *bool
 	TMDBKey        *string
 	OSUserAgent    *string
+	JackettAddress *string
+	JackettKey     *string
 }
 
 var procQuit chan bool
@@ -119,6 +121,8 @@ func main() {
 	settings.CORS = flag.Bool("cors", false, "enable CORS")
 	settings.MemorySize = flag.Int64("memorysize", 128, "specify the storage memory size in MB if storagetype is set to \"memory\" (minimum 64)") // 64MB is optimal for TVs
 	settings.TMDBKey = flag.String("tmdbkey", "", "set external TMDB API key")
+	settings.JackettAddress = flag.String("jackettaddress", "", "set external Jackett API address")
+	settings.JackettKey = flag.String("jackettkey", "", "set external Jackett API key")
 	settings.OSUserAgent = flag.String("osuseragent", "", "set external OpenSubtitles user agent")
 
 	// Set Opensubtitles server address to http because https not working on Samsung Smart TV
@@ -157,6 +161,11 @@ func main() {
 		setTMDBKey(*settings.TMDBKey)
 	} else {
 		setTMDBKey(TMDBKey)
+	}
+
+	// Configure Jackett API
+	if *settings.JackettAddress != "" && *settings.JackettKey != "" {
+		setJackettAddressAndKey(*settings.JackettAddress, *settings.JackettKey)
 	}
 
 	// Set OpenSubtitles user agent string

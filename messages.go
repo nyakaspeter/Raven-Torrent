@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	//"log"
 	"github.com/anacrolix/torrent"
 	"github.com/dustin/go-humanize"
@@ -14,67 +15,67 @@ import (
 )
 
 type messageResponse struct {
-    Success bool `json:"success"`
-    Message string `json:"message"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 type torrentFilesResponse struct {
-    Name string `json:"name"`
-    Url string `json:"url"`
-    Length string `json:"length"`
+	Name   string `json:"name"`
+	Url    string `json:"url"`
+	Length string `json:"length"`
 }
 
 type torrentListResponse struct {
-    Name string `json:"name"`
-    Hash string `json:"hash"`
-    Length string `json:"length"`
+	Name   string `json:"name"`
+	Hash   string `json:"hash"`
+	Length string `json:"length"`
 }
 
 type torrentFilesResultsResponse struct {
-    Success bool `json:"success"`
-    Results []torrentFilesResponse `json:"results"`
+	Success bool                   `json:"success"`
+	Results []torrentFilesResponse `json:"results"`
 }
 
 type torrentListResultsResponse struct {
-    Success bool `json:"success"`
-    Results []torrentListResponse `json:"results"`
+	Success bool                  `json:"success"`
+	Results []torrentListResponse `json:"results"`
 }
 
 type torrentStatsResponse struct {
-	Success bool `json:"success"`
-    DownSpeed string `json:"downspeed"`
-    DownData string `json:"downdata"`
-    DownPercent string `json:"downpercent"`
-    FullData string `json:"fulldata"`
-    Peers string `json:"peers"`
+	Success     bool   `json:"success"`
+	DownSpeed   string `json:"downspeed"`
+	DownData    string `json:"downdata"`
+	DownPercent string `json:"downpercent"`
+	FullData    string `json:"fulldata"`
+	Peers       string `json:"peers"`
 }
 
 type subtitleFilesResponse struct {
-    Lang string `json:"lang"`
-    SubtitleName string `json:"subtitlename"`
-    ReleaseName string `json:"releasename"`
-    SubFormat string `json:"subformat"`
-    SubEncoding string `json:"subencoding"`
-    SubData string `json:"subdata"`
+	Lang         string `json:"lang"`
+	SubtitleName string `json:"subtitlename"`
+	ReleaseName  string `json:"releasename"`
+	SubFormat    string `json:"subformat"`
+	SubEncoding  string `json:"subencoding"`
+	SubData      string `json:"subdata"`
 }
 
 type subtitleFilesResultsResponse struct {
-    Success bool `json:"success"`
-    Results []subtitleFilesResponse `json:"results"`
+	Success bool                    `json:"success"`
+	Results []subtitleFilesResponse `json:"results"`
 }
 
 type movieMagnetLinksResponse struct {
-    Success bool `json:"success"`
-    Results []out.OutputMovieStruct `json:"results"`
+	Success bool                    `json:"success"`
+	Results []out.OutputMovieStruct `json:"results"`
 }
 
 type showMagnetLinksResponse struct {
-    Success bool `json:"success"`
-    Results []out.OutputShowStruct `json:"results"`
+	Success bool                   `json:"success"`
+	Results []out.OutputShowStruct `json:"results"`
 }
 
 func serverInfo() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: true,
 		Message: "White Raven Server v" + version,
 	}
@@ -85,7 +86,7 @@ func serverInfo() string {
 }
 
 func serverStop() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: true,
 		Message: "Server stopped.",
 	}
@@ -96,7 +97,7 @@ func serverStop() string {
 }
 
 func restartTorrentClient() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: true,
 		Message: "Restart torrent client.",
 	}
@@ -112,16 +113,16 @@ func torrentFilesList(address string, files []*torrent.File) string {
 	var results []torrentFilesResponse
 
 	for _, f := range files {
-		result := torrentFilesResponse {
-			Name: f.DisplayPath(),
-			Url: "http://" + address + "/api/get/" + f.Torrent().InfoHash().String() + "/" + base64.StdEncoding.EncodeToString([]byte(f.DisplayPath())),
+		result := torrentFilesResponse{
+			Name:   f.DisplayPath(),
+			Url:    "http://" + address + "/api/get/" + f.Torrent().InfoHash().String() + "/" + base64.StdEncoding.EncodeToString([]byte(f.DisplayPath())),
 			Length: strconv.FormatInt(f.FileInfo().Length, 10),
 		}
 
 		results = append(results, result)
 	}
 
-	message := torrentFilesResultsResponse {
+	message := torrentFilesResultsResponse{
 		Success: true,
 		Results: results,
 	}
@@ -132,7 +133,7 @@ func torrentFilesList(address string, files []*torrent.File) string {
 }
 
 func onlyOneTorrent() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "Only one torrent stream allowed at a time.",
 	}
@@ -143,7 +144,7 @@ func onlyOneTorrent() string {
 }
 
 func failedToAddTorrent() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "Failed to add torrent.",
 	}
@@ -154,7 +155,7 @@ func failedToAddTorrent() string {
 }
 
 func deleteTorrent() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: true,
 		Message: "Torrent deleted.",
 	}
@@ -165,7 +166,7 @@ func deleteTorrent() string {
 }
 
 func deleteAllTorrent() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: true,
 		Message: "All torrents have been deleted.",
 	}
@@ -176,7 +177,7 @@ func deleteAllTorrent() string {
 }
 
 func torrentNotFound() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "Torrent not found.",
 	}
@@ -187,7 +188,7 @@ func torrentNotFound() string {
 }
 
 func noActiveTorrentFound() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "No active torrents found.",
 	}
@@ -201,16 +202,16 @@ func showAllTorrent() string {
 	var results []torrentListResponse
 
 	for _, thistorrent := range torrents {
-		result := torrentListResponse {
-			Name: thistorrent.torrent.Name(),
-			Hash: thistorrent.torrent.InfoHash().String(),
+		result := torrentListResponse{
+			Name:   thistorrent.torrent.Name(),
+			Hash:   thistorrent.torrent.InfoHash().String(),
 			Length: strconv.FormatInt(thistorrent.torrent.Length(), 10),
 		}
 
 		results = append(results, result)
 	}
 
-	message := torrentListResultsResponse {
+	message := torrentListResultsResponse{
 		Success: true,
 		Results: results,
 	}
@@ -230,24 +231,24 @@ func downloadStats(address string, torr *torrent.Torrent) string {
 	}
 	torrents[torr.InfoHash().String()].prevtime = torrWorkTime
 
-	downloadSpeed := humanize.Bytes(uint64(currentProgress - torrents[torr.InfoHash().String()].progress) / uint64(torrDivTime)) + "/s"
+	downloadSpeed := humanize.Bytes(uint64(currentProgress-torrents[torr.InfoHash().String()].progress)/uint64(torrDivTime)) + "/s"
 	torrents[torr.InfoHash().String()].progress = currentProgress
 
 	complete := humanize.Bytes(uint64(currentProgress))
-	percent :=  humanize.FormatFloat("#.", float64(currentProgress) / float64(torr.Info().TotalLength()) * 100)
+	percent := humanize.FormatFloat("#.", float64(currentProgress)/float64(torr.Info().TotalLength())*100)
 	size := humanize.Bytes(uint64(torr.Info().TotalLength()))
 	peers := strconv.Itoa(torr.Stats().ActivePeers) + "/" + strconv.Itoa(torr.Stats().TotalPeers)
 
 	//log.Println("Download speed:", downloadSpeed, "Downloaded data:", complete, "Total length:", size)
 	//log.Println("Active peers:", torr.Stats().ActivePeers, "Total peers", torr.Stats().TotalPeers, "Percent:", percent)
 
-	message := torrentStatsResponse {
-		Success: true,
-		DownSpeed: downloadSpeed,
-	    DownData: complete,
-	    DownPercent: percent,
-	    FullData: size,
-	    Peers: peers,
+	message := torrentStatsResponse{
+		Success:     true,
+		DownSpeed:   downloadSpeed,
+		DownData:    complete,
+		DownPercent: percent,
+		FullData:    size,
+		Peers:       peers,
 	}
 
 	messageString, _ := json.Marshal(message)
@@ -259,7 +260,7 @@ func downloadStats(address string, torr *torrent.Torrent) string {
 }
 
 func resourceNotFound() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "The resource you requested could not be found.",
 	}
@@ -270,7 +271,7 @@ func resourceNotFound() string {
 }
 
 func invalidBase64Path() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "Invalid base64 path.",
 	}
@@ -281,7 +282,7 @@ func invalidBase64Path() string {
 }
 
 func failedToConnectToOpenSubtitles() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "Failed to connect to opensubtitles.",
 	}
@@ -292,7 +293,7 @@ func failedToConnectToOpenSubtitles() string {
 }
 
 func noSubtitlesFound() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "No subtitles found.",
 	}
@@ -315,20 +316,20 @@ func subtitleFilesList(address string, files osdb.Subtitles, lang string) string
 			workMovieReleaseName := strings.ReplaceAll(f.MovieReleaseName, "\"", "")
 			workMovieReleaseName = strings.ReplaceAll(workMovieReleaseName, "\\", "")
 
-			result := subtitleFilesResponse {
-				Lang: f.ISO639,
-			    SubtitleName: workSubFileName,
-			    ReleaseName: workMovieReleaseName,
-			    SubFormat: f.SubFormat,
-			    SubEncoding: f.SubEncoding,
-			    SubData: "http://" + address + "/api/getsubtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/encode/" + f.SubEncoding + "/subtitle.srt",
+			result := subtitleFilesResponse{
+				Lang:         f.ISO639,
+				SubtitleName: workSubFileName,
+				ReleaseName:  workMovieReleaseName,
+				SubFormat:    f.SubFormat,
+				SubEncoding:  f.SubEncoding,
+				SubData:      "http://" + address + "/api/getsubtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/encode/" + f.SubEncoding + "/subtitle.srt",
 			}
 
 			results = append(results, result)
 		}
 	}
 
-	message := subtitleFilesResultsResponse {
+	message := subtitleFilesResultsResponse{
 		Success: true,
 		Results: results,
 	}
@@ -339,7 +340,7 @@ func subtitleFilesList(address string, files osdb.Subtitles, lang string) string
 }
 
 func failedToLoadSubtitle() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "Failed to load the subtitle.",
 	}
@@ -350,7 +351,7 @@ func failedToLoadSubtitle() string {
 }
 
 func displayMovieMagnetLinks(results []out.OutputMovieStruct) string {
-	message := movieMagnetLinksResponse {
+	message := movieMagnetLinksResponse{
 		Success: true,
 		Results: results,
 	}
@@ -361,7 +362,7 @@ func displayMovieMagnetLinks(results []out.OutputMovieStruct) string {
 }
 
 func displayShowMagnetLinks(results []out.OutputShowStruct) string {
-	message := showMagnetLinksResponse {
+	message := showMagnetLinksResponse{
 		Success: true,
 		Results: results,
 	}
@@ -372,7 +373,7 @@ func displayShowMagnetLinks(results []out.OutputShowStruct) string {
 }
 
 func noMagnetLinksFound() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "No magnet links found.",
 	}
@@ -387,9 +388,20 @@ func outputTmdbData(data string) string {
 }
 
 func noTmdbDataFound() string {
-	message := messageResponse {
+	message := messageResponse{
 		Success: false,
 		Message: "No TMDB data found.",
+	}
+
+	messageString, _ := json.Marshal(message)
+
+	return string(messageString)
+}
+
+func noTvmazeDataFound() string {
+	message := messageResponse{
+		Success: false,
+		Message: "No TVmaze data found.",
 	}
 
 	messageString, _ := json.Marshal(message)
