@@ -78,7 +78,7 @@ func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
 			Size:     strconv.FormatInt(thistorrent.SizeBytes, 10),
 			Provider: "YTS",
 			Lang:     out.DecodeLanguage(response.Data.Movies[0].Lang, "en"),
-			Title:    response.Data.Movies[0].TitleLong + " [" + thistorrent.Quality + "] [YTS]",
+			Title:    response.Data.Movies[0].TitleLong,
 			Seeds:    strconv.FormatInt(thistorrent.Seeds, 10),
 			Peers:    strconv.FormatInt(thistorrent.Peers, 10),
 			Magnet:   out.InfoHashToMagnetLink(thistorrent.Hash),

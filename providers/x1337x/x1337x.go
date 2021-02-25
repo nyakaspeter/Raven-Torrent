@@ -23,9 +23,9 @@ func GetMovieMagnetByQuery(params map[string][]string, ch chan<- []out.OutputMov
 		return
 	}
 
-	if params["releaseyear"] != nil {
-		query += " " + params["releaseyear"][0]
-	}
+	// if params["releaseyear"] != nil {
+	// 	query += " " + params["releaseyear"][0]
+	// }
 
 	query = url.QueryEscape(query)
 

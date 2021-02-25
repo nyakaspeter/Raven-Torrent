@@ -61,20 +61,8 @@ func GuessQualityFromString(value string) string {
 		quality = "480p"
 	} else if strings.Contains(lowstr, "360p") == true {
 		quality = "360p"
-	} else if strings.Contains(lowstr, "dvdrip") == true {
-		quality = "DVDRIP"
-	} else if strings.Contains(lowstr, "bdrip") == true || strings.Contains(lowstr, "brrip") {
-		quality = "BDRIP"
-	} else if strings.Contains(lowstr, "webrip") == true {
-		quality = "WEBRIP"
-	} else if strings.Contains(lowstr, "hdtv") == true {
-		quality = "HDTV"
-	} else if strings.Contains(lowstr, "tv") == true {
-		quality = "TVRIP"
-	} else if strings.Contains(lowstr, "cam") == true {
-		quality = "CAM"
 	} else {
-		quality = "N/A"
+		quality = ""
 	}
 	return quality
 }

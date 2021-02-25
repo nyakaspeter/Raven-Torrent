@@ -174,6 +174,71 @@ func GetMovieMagnetByQuery(params map[string][]string, ch chan<- []out.OutputMov
 	return
 }
 
+func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- []out.OutputShowStruct) {
+	req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=5030,5040&query=" + imdb), nil)
+	if err != nil {
+		ch <- []out.OutputShowStruct{}
+		return
+	}
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		ch <- []out.OutputShowStruct{}
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		ch <- []out.OutputShowStruct{}
+		return
+	}
+
+	response := apiResponse{}
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		ch <- []out.OutputShowStruct{}
+		return
+	}
+
+	if len(response.TorrentResults) == 0 {
+		ch <- []out.OutputShowStruct{}
+		return
+	}
+
+	outputShowData := []out.OutputShowStruct{}
+
+	for _, thistorrent := range response.TorrentResults {
+		titleSeason, titleEpisode := out.GuessSeasonEpisodeNumberFromString(thistorrent.Title)
+
+		if titleSeason == season && titleEpisode == episode {
+			temp := out.OutputShowStruct{
+				Hash:     out.GetInfoHash(thistorrent.MagnetUri),
+				Quality:  out.GuessQualityFromString(thistorrent.Title),
+				Season:   season,
+				Episode:  episode,
+				Size:     strconv.FormatInt(thistorrent.Size, 10),
+				Provider: thistorrent.Tracker,
+				Lang:     out.GuessLanguageFromString(thistorrent.Title),
+				Title:    thistorrent.Title,
+				Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
+				Peers:    strconv.FormatInt(thistorrent.Peers, 10),
+				Magnet:   thistorrent.MagnetUri,
+				Torrent:  thistorrent.Link,
+			}
+			outputShowData = append(outputShowData, temp)
+		}
+	}
+
+	ch <- outputShowData
+	return
+}
+
 func GetShowMagnetByQuery(params map[string][]string, season string, episode string, ch chan<- []out.OutputShowStruct) {
 	// Decode params data
 	query := ""

@@ -139,7 +139,7 @@ func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
 				Size:     strconv.FormatInt(response.Torrents.Lang.Quality360p.Size, 10),
 				Provider: response.Torrents.Lang.Quality360p.Provider,
 				Lang:     "en",
-				Title:    data.DisplayName,
+				Title:    response.Title,
 				Seeds:    strconv.FormatInt(response.Torrents.Lang.Quality360p.Seed, 10),
 				Peers:    strconv.FormatInt(response.Torrents.Lang.Quality360p.Peer, 10),
 				Magnet:   response.Torrents.Lang.Quality360p.Url,
@@ -157,7 +157,7 @@ func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
 				Size:     strconv.FormatInt(response.Torrents.Lang.Quality480p.Size, 10),
 				Provider: response.Torrents.Lang.Quality480p.Provider,
 				Lang:     "en",
-				Title:    data.DisplayName,
+				Title:    response.Title,
 				Seeds:    strconv.FormatInt(response.Torrents.Lang.Quality480p.Seed, 10),
 				Peers:    strconv.FormatInt(response.Torrents.Lang.Quality480p.Peer, 10),
 				Magnet:   response.Torrents.Lang.Quality480p.Url,
@@ -175,7 +175,7 @@ func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
 				Size:     strconv.FormatInt(response.Torrents.Lang.Quality720p.Size, 10),
 				Provider: response.Torrents.Lang.Quality720p.Provider,
 				Lang:     "en",
-				Title:    data.DisplayName,
+				Title:    response.Title,
 				Seeds:    strconv.FormatInt(response.Torrents.Lang.Quality720p.Seed, 10),
 				Peers:    strconv.FormatInt(response.Torrents.Lang.Quality720p.Peer, 10),
 				Magnet:   response.Torrents.Lang.Quality720p.Url,
@@ -193,7 +193,7 @@ func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
 				Size:     strconv.FormatInt(response.Torrents.Lang.Quality1080p.Size, 10),
 				Provider: response.Torrents.Lang.Quality1080p.Provider,
 				Lang:     "en",
-				Title:    data.DisplayName,
+				Title:    response.Title,
 				Seeds:    strconv.FormatInt(response.Torrents.Lang.Quality1080p.Seed, 10),
 				Peers:    strconv.FormatInt(response.Torrents.Lang.Quality1080p.Peer, 10),
 				Magnet:   response.Torrents.Lang.Quality1080p.Url,
@@ -211,7 +211,7 @@ func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
 				Size:     strconv.FormatInt(response.Torrents.Lang.Quality2160p.Size, 10),
 				Provider: response.Torrents.Lang.Quality2160p.Provider,
 				Lang:     "en",
-				Title:    data.DisplayName,
+				Title:    response.Title,
 				Seeds:    strconv.FormatInt(response.Torrents.Lang.Quality2160p.Seed, 10),
 				Peers:    strconv.FormatInt(response.Torrents.Lang.Quality2160p.Peer, 10),
 				Magnet:   response.Torrents.Lang.Quality2160p.Url,
@@ -260,6 +260,23 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 
 	for _, thisepisode := range response.Episodes {
 		if (strconv.FormatInt(thisepisode.Season, 10) == season || season == "0") && (strconv.FormatInt(thisepisode.Episode, 10) == episode || episode == "0") {
+			title := response.Title + " "
+
+			if season != "0" {
+				if len(season) == 1 {
+					title += "S0" + season
+				} else {
+					title += "S" + season
+				}
+			}
+			if episode != "0" {
+				if len(episode) == 1 {
+					title += "E0" + episode
+				} else {
+					title += "E" + episode
+				}
+			}
+
 			if thisepisode.Torrents.Quality360p.Url != "" {
 				data, err := metainfo.ParseMagnetURI(thisepisode.Torrents.Quality360p.Url)
 				if err == nil {
@@ -270,7 +287,7 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 						Season:   strconv.FormatInt(thisepisode.Season, 10),
 						Episode:  strconv.FormatInt(thisepisode.Episode, 10),
 						Provider: thisepisode.Torrents.Quality360p.Provider,
-						Title:    data.DisplayName,
+						Title:    title,
 						Seeds:    strconv.FormatInt(thisepisode.Torrents.Quality360p.Seeds, 10),
 						Peers:    strconv.FormatInt(thisepisode.Torrents.Quality360p.Peers, 10),
 						Magnet:   thisepisode.Torrents.Quality360p.Url,
@@ -289,7 +306,7 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 						Season:   strconv.FormatInt(thisepisode.Season, 10),
 						Episode:  strconv.FormatInt(thisepisode.Episode, 10),
 						Provider: thisepisode.Torrents.Quality480p.Provider,
-						Title:    data.DisplayName,
+						Title:    title,
 						Seeds:    strconv.FormatInt(thisepisode.Torrents.Quality480p.Seeds, 10),
 						Peers:    strconv.FormatInt(thisepisode.Torrents.Quality480p.Peers, 10),
 						Magnet:   thisepisode.Torrents.Quality480p.Url,
@@ -308,7 +325,7 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 						Season:   strconv.FormatInt(thisepisode.Season, 10),
 						Episode:  strconv.FormatInt(thisepisode.Episode, 10),
 						Provider: thisepisode.Torrents.Quality720p.Provider,
-						Title:    data.DisplayName,
+						Title:    title,
 						Seeds:    strconv.FormatInt(thisepisode.Torrents.Quality720p.Seeds, 10),
 						Peers:    strconv.FormatInt(thisepisode.Torrents.Quality720p.Peers, 10),
 						Magnet:   thisepisode.Torrents.Quality720p.Url,
@@ -327,7 +344,7 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 						Season:   strconv.FormatInt(thisepisode.Season, 10),
 						Episode:  strconv.FormatInt(thisepisode.Episode, 10),
 						Provider: thisepisode.Torrents.Quality1080p.Provider,
-						Title:    data.DisplayName,
+						Title:    title,
 						Seeds:    strconv.FormatInt(thisepisode.Torrents.Quality1080p.Seeds, 10),
 						Peers:    strconv.FormatInt(thisepisode.Torrents.Quality1080p.Peers, 10),
 						Magnet:   thisepisode.Torrents.Quality1080p.Url,
@@ -346,7 +363,7 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 						Season:   strconv.FormatInt(thisepisode.Season, 10),
 						Episode:  strconv.FormatInt(thisepisode.Episode, 10),
 						Provider: thisepisode.Torrents.Quality2160p.Provider,
-						Title:    data.DisplayName,
+						Title:    title,
 						Seeds:    strconv.FormatInt(thisepisode.Torrents.Quality2160p.Seeds, 10),
 						Peers:    strconv.FormatInt(thisepisode.Torrents.Quality2160p.Peers, 10),
 						Magnet:   thisepisode.Torrents.Quality2160p.Url,

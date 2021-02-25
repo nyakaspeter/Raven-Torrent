@@ -115,6 +115,9 @@ func GetShowMagnet(imdbid string, query string, season string, episode string, s
 	if imdbid != "" {
 		for _, source := range sources {
 			switch strings.ToLower(source) {
+			case "jackett":
+				go jackett.GetShowMagnetByImdb(imdbid, season, episode, ch)
+				counter++
 			case "pt":
 				go pt.GetShowMagnetByImdb(imdbid, season, episode, ch)
 				counter++
