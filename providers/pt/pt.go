@@ -259,21 +259,24 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 	outputShowData := []out.OutputShowStruct{}
 
 	for _, thisepisode := range response.Episodes {
-		if (strconv.FormatInt(thisepisode.Season, 10) == season || season == "0") && (strconv.FormatInt(thisepisode.Episode, 10) == episode || episode == "0") {
+		s := strconv.FormatInt(thisepisode.Season, 10)
+		e := strconv.FormatInt(thisepisode.Episode, 10)
+
+		if (s == season || season == "0") && (e == episode || episode == "0") {
 			title := response.Title + " "
 
-			if season != "0" {
-				if len(season) == 1 {
-					title += "S0" + season
+			if s != "0" {
+				if len(s) == 1 {
+					title += "S0" + s
 				} else {
-					title += "S" + season
+					title += "S" + s
 				}
 			}
-			if episode != "0" {
-				if len(episode) == 1 {
-					title += "E0" + episode
+			if e != "0" {
+				if len(e) == 1 {
+					title += "E0" + e
 				} else {
-					title += "E" + episode
+					title += "E" + e
 				}
 			}
 
