@@ -12,10 +12,10 @@ Get server information.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `message` | string | Text message that contains the server's name and version.|
+| Name      | Type   | Description                                               |
+| --------- | ------ | --------------------------------------------------------- |
+| `success` | bool   | Indicates whether the query was successful.               |
+| `message` | string | Text message that contains the server's name and version. |
 
 ## Examples
 
@@ -27,7 +27,7 @@ Get server information.
 
 ```json
 {
-	"success": true,
-	"message": "White Raven Server v0.4.1"
+  "success": true,
+  "message": "White Raven Server v0.5.0"
 }
 ```

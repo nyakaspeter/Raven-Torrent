@@ -28,7 +28,7 @@ import (
 )
 
 const (
-	version        = "0.4.1"
+	version        = "0.5.0"
 	resolveTimeout = time.Second * 35
 	megaByte       = 1024 * 1024
 )
