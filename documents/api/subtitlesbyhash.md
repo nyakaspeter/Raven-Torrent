@@ -8,11 +8,11 @@ Search subtitles for movies or tv shows by torrent's inner file hash.
 
 **Query Parameters** :
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `hash` | string | 40 characters long infohash.|
-| `base64path` | string | Base64 encoded path with filename.|
-| `lang` | integer | ISO 639-2 three-letter language codes separated with a comma.|
+| Parameter    | Type    | Description                                                   |
+| ------------ | ------- | ------------------------------------------------------------- |
+| `hash`       | string  | 40 characters long infohash.                                  |
+| `base64path` | string  | Base64 encoded path with filename.                            |
+| `lang`       | integer | ISO 639-2 three-letter language codes separated with a comma. |
 
 ## Success Response
 
@@ -20,21 +20,21 @@ Search subtitles for movies or tv shows by torrent's inner file hash.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `results` | array[object] | Array of objects.|
+| Name      | Type          | Description                                 |
+| --------- | ------------- | ------------------------------------------- |
+| `success` | bool          | Indicates whether the query was successful. |
+| `results` | array[object] | Array of objects.                           |
 
 **Object [ results ]** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `lang` | string | ISO 639-1 two-letter language code.|
-| `subtitlename` | string | Subtitle filename.|
-| `releasename` | string | Subtitle release name.|
-| `subformat` | string | Subtitle file type. **It is always "srt", because only SubRip files are supported.**|
-| `subencoding` | string | Character encoding of the subtitle file.|
-| `subdata` | string | HTTP url to get the raw content of the subtitle file.|
+| Name           | Type   | Description                                                                          |
+| -------------- | ------ | ------------------------------------------------------------------------------------ |
+| `lang`         | string | ISO 639-1 two-letter language code.                                                  |
+| `subtitlename` | string | Subtitle filename.                                                                   |
+| `releasename`  | string | Subtitle release name.                                                               |
+| `subformat`    | string | Subtitle file type. **It is always "srt", because only SubRip files are supported.** |
+| `subencoding`  | string | Character encoding of the subtitle file.                                             |
+| `subdata`      | string | HTTP url to get the raw content of the subtitle file.                                |
 
 ## Error Response
 
@@ -42,10 +42,10 @@ Search subtitles for movies or tv shows by torrent's inner file hash.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `message` | string | Text message that describes the response.|
+| Name      | Type   | Description                                 |
+| --------- | ------ | ------------------------------------------- |
+| `success` | bool   | Indicates whether the query was successful. |
+| `message` | string | Text message that describes the response.   |
 
 ## Examples
 
@@ -57,15 +57,17 @@ Search subtitles for movies or tv shows by torrent's inner file hash.
 
 ```json
 {
-    "success": true,
-    "results": [{
-        "lang": "en",
-        "subtitlename": "sintel_en.srt",
-        "releasename": "",
-        "subformat": "srt",
-        "subencoding": "ASCII",
-        "subdata": "http://localhost:9000/api/getsubtitle/aHR0cDovL2RsLm9wZW5zdWJ0aXRsZXMub3JnL2VuL2Rvd25sb2FkL3NyYy1hcGkvdnJmLWY1NjIwYmMyL3NpZC1WMDRMZkRQak5YdkItRnlVbGxiZ3RtcjJpcGYvc3ViYWQvMzg3MTc5Ng==/encode/ASCII/subtitle.srt"
-    }]
+  "success": true,
+  "results": [
+    {
+      "lang": "en",
+      "subtitlename": "sintel_en.srt",
+      "releasename": "",
+      "subformat": "srt",
+      "subencoding": "ASCII",
+      "subdata": "http://localhost:9000/api/getsubtitle/aHR0cDovL2RsLm9wZW5zdWJ0aXRsZXMub3JnL2VuL2Rvd25sb2FkL3NyYy1hcGkvdnJmLWY1NjIwYmMyL3NpZC1WMDRMZkRQak5YdkItRnlVbGxiZ3RtcjJpcGYvc3ViYWQvMzg3MTc5Ng==/encode/ASCII/subtitle.srt"
+    }
+  ]
 }
 ```
 
@@ -73,7 +75,7 @@ Search subtitles for movies or tv shows by torrent's inner file hash.
 
 ```json
 {
-    "success": false,
-    "message": "No subtitles found."
+  "success": false,
+  "message": "No subtitles found."
 }
 ```

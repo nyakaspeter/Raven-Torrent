@@ -12,18 +12,18 @@ Get all active torrents.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `results` | array[object] | Array of objects.|
+| Name      | Type          | Description                                 |
+| --------- | ------------- | ------------------------------------------- |
+| `success` | bool          | Indicates whether the query was successful. |
+| `results` | array[object] | Array of objects.                           |
 
 **Object [ results ]** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `name` | string | Filename with extension.|
-| `hash` | string | 40 characters long infohash.|
-| `length` | string | File length in bytes.|
+| Name     | Type   | Description                  |
+| -------- | ------ | ---------------------------- |
+| `name`   | string | Filename with extension.     |
+| `hash`   | string | 40 characters long infohash. |
+| `length` | string | File length in bytes.        |
 
 ## Error Response
 
@@ -31,10 +31,10 @@ Get all active torrents.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `message` | string | Text message that describes the response.|
+| Name      | Type   | Description                                 |
+| --------- | ------ | ------------------------------------------- |
+| `success` | bool   | Indicates whether the query was successful. |
+| `message` | string | Text message that describes the response.   |
 
 ## Examples
 
@@ -46,19 +46,22 @@ Get all active torrents.
 
 ```json
 {
-	"success": true,
-	"results": [{
-		"name": "Sintel",
-		"hash": "08ada5a7a6183aae1e09d831df6748d566095a10",
-		"length": "129302391"
-	}]
+  "success": true,
+  "results": [
+    {
+      "name": "Sintel",
+      "hash": "08ada5a7a6183aae1e09d831df6748d566095a10",
+      "length": "129302391"
+    }
+  ]
 }
 ```
+
 **Error Response** :
 
 ```json
 {
-	"success": false,
-	"message": "No active torrents found."
+  "success": false,
+  "message": "No active torrents found."
 }
 ```

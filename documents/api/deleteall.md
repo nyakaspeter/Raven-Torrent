@@ -12,10 +12,10 @@ Delete all active torrents.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `message` | string | Text message that describes the response.|
+| Name      | Type   | Description                                 |
+| --------- | ------ | ------------------------------------------- |
+| `success` | bool   | Indicates whether the query was successful. |
+| `message` | string | Text message that describes the response.   |
 
 ## Error Response
 
@@ -23,10 +23,10 @@ Delete all active torrents.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `message` | string | Text message that describes the response.|
+| Name      | Type   | Description                                 |
+| --------- | ------ | ------------------------------------------- |
+| `success` | bool   | Indicates whether the query was successful. |
+| `message` | string | Text message that describes the response.   |
 
 ## Examples
 
@@ -38,15 +38,16 @@ Delete all active torrents.
 
 ```json
 {
-	"success": true,
-	"message": "All torrents have been deleted."
+  "success": true,
+  "message": "All torrents have been deleted."
 }
 ```
+
 **Error Response** :
 
 ```json
 {
-	"success": false,
-	"message": "No active torrents found."
+  "success": false,
+  "message": "No active torrents found."
 }
 ```

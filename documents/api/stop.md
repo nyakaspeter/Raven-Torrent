@@ -12,10 +12,10 @@ Stop the server and exit from the application.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `message` | string | Text message that describes the response.|
+| Name      | Type   | Description                                 |
+| --------- | ------ | ------------------------------------------- |
+| `success` | bool   | Indicates whether the query was successful. |
+| `message` | string | Text message that describes the response.   |
 
 ## Examples
 
@@ -27,7 +27,7 @@ Stop the server and exit from the application.
 
 ```json
 {
-	"success": true,
-	"message": "Server stopped."
+  "success": true,
+  "message": "Server stopped."
 }
 ```

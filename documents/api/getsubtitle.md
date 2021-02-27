@@ -8,10 +8,10 @@ Download and serve the raw content of the subtitle file from memory.
 
 **Query Parameters** :
 
-| Parameter | Type | Description |
-| --- | --- | --- |
+| Parameter    | Type   | Description                                            |
+| ------------ | ------ | ------------------------------------------------------ |
 | `base64path` | string | Base64 encoded path of a zip compressed subtitle file. |
-| `encode` | string | Character encoding of the subtitle file.|
+| `encode`     | string | Character encoding of the subtitle file.               |
 
 ## Success Response
 
@@ -25,10 +25,10 @@ Download and serve the raw content of the subtitle file from memory.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `message` | string | Text message that describes the response.|
+| Name      | Type   | Description                                 |
+| --------- | ------ | ------------------------------------------- |
+| `success` | bool   | Indicates whether the query was successful. |
+| `message` | string | Text message that describes the response.   |
 
 ## Examples
 
@@ -72,7 +72,7 @@ Thank you.
 
 ```json
 {
-    "success": false,
-    "message": "Failed to load the subtitle."
+  "success": false,
+  "message": "Failed to load the subtitle."
 }
 ```

@@ -8,10 +8,10 @@ Stream or download the selected file over http connection.
 
 **Query Parameters** :
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| `hash` | string | 40 characters long infohash.|
-| `base64path` | string | Base64 encoded path with filename.|
+| Parameter    | Type   | Description                        |
+| ------------ | ------ | ---------------------------------- |
+| `hash`       | string | 40 characters long infohash.       |
+| `base64path` | string | Base64 encoded path with filename. |
 
 ## Success Response
 
@@ -25,10 +25,10 @@ Stream or download the selected file over http connection.
 
 **Main Object** :
 
-| Name | Type | Description |
-| --- | --- | --- |
-| `success` | bool | Indicates whether the query was successful.|
-| `message` | string | Text message that describes the response.|
+| Name      | Type   | Description                                 |
+| --------- | ------ | ------------------------------------------- |
+| `success` | bool   | Indicates whether the query was successful. |
+| `message` | string | Text message that describes the response.   |
 
 ## Examples
 
@@ -65,7 +65,7 @@ Thank you.
 
 ```json
 {
-    "success": false,
-    "message": "Invalid base64 path."
+  "success": false,
+  "message": "Invalid base64 path."
 }
 ```

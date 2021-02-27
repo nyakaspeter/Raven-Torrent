@@ -23,15 +23,12 @@
 
 ### Movie or TV Show related
 
-- [Get movie magnet by IMDB id](documents/api/moviebyimdb.md)
-- [Get movie magnet by query text](documents/api/moviebytext.md)
-- [Get movie magnet by IMDB id and query text at once](documents/api/moviebyboth.md)
-- [Get show magnet by IMDB id](documents/api/showbyimdb.md)
-- [Get show magnet by query text](documents/api/showbytext.md)
-- [Get show magnet by IMDB id and query text at once](documents/api/showbyboth.md)
+- [Get movie torrents by IMDB id or query text or both](documents/api/getmoviemagnet.md)
+- [Get tv show torrents by IMDB id or query text or both](documents/api/getshowmagnet.md)
 - [Discover movies or tv shows](documents/api/tmdbdiscover.md)
 - [Search movies or tv shows by query text](documents/api/tmdbsearch.md)
 - [Get more info about movie or tv show by TMDB id](documents/api/tmdbinfo.md)
+- [Get tv show episodes by IMDB id or TVDB id](documents/api/tvmazeepisodes.md)
 
 ### Subtitle related
 
@@ -39,36 +36,38 @@
 - [Search subtitles by query text](documents/api/subtitlesbytext.md)
 - [Search subtitles by inner file hash](documents/api/subtitlesbyhash.md)
 - [Download subtitle file](documents/api/getsubtitle.md)
-  <br/>
+
+<br/>
 
 ## Command-Line Arguments
 
-- **-background** run the server in the background
-- **-cors** enable CORS
-- **-dir** `string` specify the directory where files will be downloaded to if storagetype is set to "piecefile" or "file"
-- **-downrate** `int` download speed rate in Kbps (`default 0`) (0 is unlimited speed)
-- **-help** print this help message
-- **-host** `string` listening server ip
-- **-log** enable log messages
-- **-maxconn** `int` max connections per torrent (`default 50`)
+- **-storagetype** `string` select storage type (must be set to "memory" or "piecefile" or "file") (`default "memory"`)
 - **-memorysize** `int` specify the storage memory size in MB if storagetype is set to "memory" (minimum 64) (`default 128`)
+- **-dir** `string` specify the directory where files will be downloaded to if storagetype is set to "piecefile" or "file"
+
+- **-downrate** `int` download speed rate in Kbps (0 is unlimited speed) (`default 0`)
+- **-uprate** `int` upload speed rate in Kbps (0 is upload disabled) (`default 0`)
+- **-maxconn** `int` max connections per torrent (`default 50`)
 - **-nodht** disable dht
-- **-osuseragent**`string` set external OpenSubtitles user agent
+
+- **-jackettaddress** `string` set external Jackett API address (enter only host address and port e.g. `http://192.168.0.2:9117`)
+- **-jackettkey** `string` set external Jackett API key
+- **-tmdbkey** `string` set external TMDB API key
+- **-osuseragent** `string` set external OpenSubtitles user agent
+
 - **-port** `int` listening port (`default 9000`)
-- **-storagetype**`string` select storage type (must be set to "memory" or "piecefile" or "file") (`default "memory"`)
-- **-tmdbkey**`string` set external TMDB API key
-- **-uprate** `int` upload speed rate in Kbps (`default 0`) (0 is upload disabled)
-  <br/>
+- **-host** `string` listening server ip
+- **-cors** enable CORS
+
+- **-background** run the server in the background
+- **-help** print this help message
+- **-log** enable log messages
+
+<br/>
 
 ## Build Instructions
 
 ### Build On Windows
-
-**Download:**
-
-```
-$ go get -v -u github.com/silentmurdock/wrserver
-```
 
 **Build in vendor mode for Samsung Smart TV E, F, H ARM series:**
 
@@ -133,6 +132,7 @@ $ wrserver -storagetype="file" -dir="downloads"
 ## Note For Releases
 
 The releases always compressed with the latest version of [UPX](https://upx.github.io), an advanced executable file packer to decrease the size of the application. This is important for embedded devices such as Samsung Smart TVs because they have a very limited amount of resources!
+
 <br/>
 
 ## License
