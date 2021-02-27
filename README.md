@@ -2,8 +2,6 @@
 
 **White Raven Server is a REST-like API controlled torrent client application to find movies and tv shows from various sources and stream them over http connection. Mainly created for [White Raven](https://github.com/silentmurdock/whiteraven), which is a torrent player application for Samsung Smart TV E, F, H series.**
 
-<br/>
-
 ## HTTP API Functions
 
 ### Server and Client related
@@ -37,8 +35,6 @@
 - [Search subtitles by inner file hash](documents/api/subtitlesbyhash.md)
 - [Download subtitle file](documents/api/getsubtitle.md)
 
-<br/>
-
 ## Command-Line Arguments
 
 - **-storagetype** `string` select storage type (must be set to "memory" or "piecefile" or "file") (`default "memory"`)
@@ -62,8 +58,6 @@
 - **-background** run the server in the background
 - **-help** print this help message
 - **-log** enable log messages
-
-<br/>
 
 ## Build Instructions
 
@@ -111,8 +105,6 @@ $ set GOARCH=amd64
 $ go build -ldflags="-s -w" -mod=vendor -o wrserver
 ```
 
-<br/>
-
 ## Run The Server
 
 **Simply run the executable file without parameters to serve torrent data from memory.**
@@ -127,13 +119,9 @@ $ wrserver
 $ wrserver -storagetype="file" -dir="downloads"
 ```
 
-<br/>
-
 ## Note For Releases
 
 The releases always compressed with the latest version of [UPX](https://upx.github.io), an advanced executable file packer to decrease the size of the application. This is important for embedded devices such as Samsung Smart TVs because they have a very limited amount of resources!
-
-<br/>
 
 ## License
 
