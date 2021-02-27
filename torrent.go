@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -761,7 +760,7 @@ func setReceivedMagnet(magnet string) string {
 	if receiverEnabled == true {
 		log.Println("Received magnet link:", magnet)
 
-		receiverResponse = base64.StdEncoding.EncodeToString([]byte(magnet))
+		receiverResponse = magnet
 		receiverEnabled = false
 		return "ok"
 	} else {
@@ -775,7 +774,7 @@ func setReceivedTorrent(mi *metainfo.MetaInfo) string {
 		log.Println("Received torrent file:", spec.DisplayName)
 
 		receivedTorrent = mi
-		receiverResponse = base64.StdEncoding.EncodeToString([]byte(spec.DisplayName))
+		receiverResponse = spec.DisplayName
 		receiverEnabled = false
 		return "ok"
 	} else {
@@ -792,7 +791,7 @@ func checkReceiver(todo string) string {
 	} else if todo == "check" {
 		// Wait 3 second because Long Polling
 		time.Sleep(3 * time.Second)
-		return "{\"infohash\":\"" + receiverResponse + "\"}"
+		return "{\"received\":\"" + receiverResponse + "\"}"
 	} else if todo == "stop" {
 		receiverEnabled = false
 		return "{\"response\":\"ok\"}"
