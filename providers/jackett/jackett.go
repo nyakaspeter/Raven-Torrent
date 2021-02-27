@@ -40,59 +40,63 @@ func SetJackettAddressAndKey(address string, key string) {
 }
 
 func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
-	req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=2030,2040&query=" + imdb), nil)
-	if err != nil {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
-
-	//req.Header.Set("User-Agent", UserAgent)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
-
-	response := apiResponse{}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
-
-	if len(response.TorrentResults) == 0 {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
+	categories := [...]string{"2030", "2040"}
 
 	outputMovieData := []out.OutputMovieStruct{}
 
-	for _, thistorrent := range response.TorrentResults {
-		temp := out.OutputMovieStruct{
-			Hash:     out.GetInfoHash(thistorrent.MagnetUri),
-			Quality:  out.GuessQualityFromString(thistorrent.Title),
-			Size:     strconv.FormatInt(thistorrent.Size, 10),
-			Provider: thistorrent.Tracker,
-			Lang:     out.GuessLanguageFromString(thistorrent.Title),
-			Title:    thistorrent.Title,
-			Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
-			Peers:    strconv.FormatInt(thistorrent.Peers, 10),
-			Magnet:   thistorrent.MagnetUri,
-			Torrent:  thistorrent.Link,
+	for _, category := range categories {
+		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + imdb), nil)
+		if err != nil {
+			ch <- []out.OutputMovieStruct{}
+			return
 		}
-		outputMovieData = append(outputMovieData, temp)
+
+		//req.Header.Set("User-Agent", UserAgent)
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+
+		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			ch <- []out.OutputMovieStruct{}
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			ch <- []out.OutputMovieStruct{}
+			return
+		}
+
+		response := apiResponse{}
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			ch <- []out.OutputMovieStruct{}
+			return
+		}
+
+		if len(response.TorrentResults) == 0 {
+			ch <- []out.OutputMovieStruct{}
+			return
+		}
+
+		for _, thistorrent := range response.TorrentResults {
+			temp := out.OutputMovieStruct{
+				Hash:     out.GetInfoHash(thistorrent.MagnetUri),
+				Quality:  out.GuessQualityFromString(thistorrent.Title),
+				Size:     strconv.FormatInt(thistorrent.Size, 10),
+				Provider: thistorrent.Tracker,
+				Lang:     out.GuessLanguageFromString(thistorrent.Title),
+				Title:    thistorrent.Title,
+				Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
+				Peers:    strconv.FormatInt(thistorrent.Peers, 10),
+				Magnet:   thistorrent.MagnetUri,
+				Torrent:  thistorrent.Link,
+			}
+			outputMovieData = append(outputMovieData, temp)
+		}
 	}
 
 	ch <- outputMovieData
@@ -116,112 +120,51 @@ func GetMovieMagnetByQuery(params map[string][]string, ch chan<- []out.OutputMov
 
 	query = url.QueryEscape(query)
 
-	req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=2030,2040&query=" + query), nil)
-	if err != nil {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
-
-	response := apiResponse{}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
-
-	if len(response.TorrentResults) == 0 {
-		ch <- []out.OutputMovieStruct{}
-		return
-	}
+	categories := [...]string{"2030", "2040"}
 
 	outputMovieData := []out.OutputMovieStruct{}
 
-	for _, thistorrent := range response.TorrentResults {
-		temp := out.OutputMovieStruct{
-			Hash:     out.GetInfoHash(thistorrent.MagnetUri),
-			Quality:  out.GuessQualityFromString(thistorrent.Title),
-			Size:     strconv.FormatInt(thistorrent.Size, 10),
-			Provider: thistorrent.Tracker,
-			Lang:     out.GuessLanguageFromString(thistorrent.Title),
-			Title:    thistorrent.Title,
-			Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
-			Peers:    strconv.FormatInt(thistorrent.Peers, 10),
-			Magnet:   thistorrent.MagnetUri,
-			Torrent:  thistorrent.Link,
+	for _, category := range categories {
+		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + query), nil)
+		if err != nil {
+			ch <- []out.OutputMovieStruct{}
+			return
 		}
-		outputMovieData = append(outputMovieData, temp)
-	}
 
-	ch <- outputMovieData
-	return
-}
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
 
-func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- []out.OutputShowStruct) {
-	req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=5030,5040&query=" + imdb), nil)
-	if err != nil {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
+		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			ch <- []out.OutputMovieStruct{}
+			return
+		}
+		defer resp.Body.Close()
 
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			ch <- []out.OutputMovieStruct{}
+			return
+		}
 
-	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
-	defer resp.Body.Close()
+		response := apiResponse{}
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			ch <- []out.OutputMovieStruct{}
+			return
+		}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
+		if len(response.TorrentResults) == 0 {
+			ch <- []out.OutputMovieStruct{}
+			return
+		}
 
-	response := apiResponse{}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
-
-	if len(response.TorrentResults) == 0 {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
-
-	outputShowData := []out.OutputShowStruct{}
-
-	for _, thistorrent := range response.TorrentResults {
-		titleSeason, titleEpisode := out.GuessSeasonEpisodeNumberFromString(thistorrent.Title)
-
-		if titleSeason == season && titleEpisode == episode {
-			temp := out.OutputShowStruct{
+		for _, thistorrent := range response.TorrentResults {
+			temp := out.OutputMovieStruct{
 				Hash:     out.GetInfoHash(thistorrent.MagnetUri),
 				Quality:  out.GuessQualityFromString(thistorrent.Title),
-				Season:   season,
-				Episode:  episode,
 				Size:     strconv.FormatInt(thistorrent.Size, 10),
 				Provider: thistorrent.Tracker,
 				Lang:     out.GuessLanguageFromString(thistorrent.Title),
@@ -231,7 +174,76 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 				Magnet:   thistorrent.MagnetUri,
 				Torrent:  thistorrent.Link,
 			}
-			outputShowData = append(outputShowData, temp)
+			outputMovieData = append(outputMovieData, temp)
+		}
+	}
+
+	ch <- outputMovieData
+	return
+}
+
+func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- []out.OutputShowStruct) {
+	categories := [...]string{"5030", "5040"}
+
+	outputShowData := []out.OutputShowStruct{}
+
+	for _, category := range categories {
+		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + imdb), nil)
+		if err != nil {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+
+		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+
+		response := apiResponse{}
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+
+		if len(response.TorrentResults) == 0 {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+
+		for _, thistorrent := range response.TorrentResults {
+			titleSeason, titleEpisode := out.GuessSeasonEpisodeNumberFromString(thistorrent.Title)
+
+			if titleSeason == season && titleEpisode == episode {
+				temp := out.OutputShowStruct{
+					Hash:     out.GetInfoHash(thistorrent.MagnetUri),
+					Quality:  out.GuessQualityFromString(thistorrent.Title),
+					Season:   season,
+					Episode:  episode,
+					Size:     strconv.FormatInt(thistorrent.Size, 10),
+					Provider: thistorrent.Tracker,
+					Lang:     out.GuessLanguageFromString(thistorrent.Title),
+					Title:    thistorrent.Title,
+					Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
+					Peers:    strconv.FormatInt(thistorrent.Peers, 10),
+					Magnet:   thistorrent.MagnetUri,
+					Torrent:  thistorrent.Link,
+				}
+				outputShowData = append(outputShowData, temp)
+			}
 		}
 	}
 
@@ -267,62 +279,66 @@ func GetShowMagnetByQuery(params map[string][]string, season string, episode str
 
 	query = url.QueryEscape(query)
 
-	req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=5030,5040&query=" + query), nil)
-	if err != nil {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
-
-	response := apiResponse{}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
-
-	if len(response.TorrentResults) == 0 {
-		ch <- []out.OutputShowStruct{}
-		return
-	}
+	categories := [...]string{"5030", "5040"}
 
 	outputShowData := []out.OutputShowStruct{}
 
-	for _, thistorrent := range response.TorrentResults {
-		season, episode := out.GuessSeasonEpisodeNumberFromString(thistorrent.Title)
-
-		temp := out.OutputShowStruct{
-			Hash:     out.GetInfoHash(thistorrent.MagnetUri),
-			Quality:  out.GuessQualityFromString(thistorrent.Title),
-			Season:   season,
-			Episode:  episode,
-			Size:     strconv.FormatInt(thistorrent.Size, 10),
-			Provider: thistorrent.Tracker,
-			Lang:     out.GuessLanguageFromString(thistorrent.Title),
-			Title:    thistorrent.Title,
-			Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
-			Peers:    strconv.FormatInt(thistorrent.Peers, 10),
-			Magnet:   thistorrent.MagnetUri,
-			Torrent:  thistorrent.Link,
+	for _, category := range categories {
+		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + query), nil)
+		if err != nil {
+			ch <- []out.OutputShowStruct{}
+			return
 		}
-		outputShowData = append(outputShowData, temp)
+
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+
+		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+
+		response := apiResponse{}
+		err = json.Unmarshal(body, &response)
+		if err != nil {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+
+		if len(response.TorrentResults) == 0 {
+			ch <- []out.OutputShowStruct{}
+			return
+		}
+
+		for _, thistorrent := range response.TorrentResults {
+			season, episode := out.GuessSeasonEpisodeNumberFromString(thistorrent.Title)
+
+			temp := out.OutputShowStruct{
+				Hash:     out.GetInfoHash(thistorrent.MagnetUri),
+				Quality:  out.GuessQualityFromString(thistorrent.Title),
+				Season:   season,
+				Episode:  episode,
+				Size:     strconv.FormatInt(thistorrent.Size, 10),
+				Provider: thistorrent.Tracker,
+				Lang:     out.GuessLanguageFromString(thistorrent.Title),
+				Title:    thistorrent.Title,
+				Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
+				Peers:    strconv.FormatInt(thistorrent.Peers, 10),
+				Magnet:   thistorrent.MagnetUri,
+				Torrent:  thistorrent.Link,
+			}
+			outputShowData = append(outputShowData, temp)
+		}
 	}
 
 	ch <- outputShowData

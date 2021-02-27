@@ -795,8 +795,6 @@ func checkReceiver(todo string) string {
 		return "{\"infohash\":\"" + receiverResponse + "\"}"
 	} else if todo == "stop" {
 		receiverEnabled = false
-		receiverResponse = ""
-		receivedTorrent = nil
 		return "{\"response\":\"ok\"}"
 	} else {
 		return "{\"response\":\"unknown\"}"

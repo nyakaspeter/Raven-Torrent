@@ -169,22 +169,15 @@ func handleAPI(cors bool) {
 		}
 	})
 
-	routerAPI.HandleFunc(urlAPI+"add/{hash}", func(w http.ResponseWriter, r *http.Request) {
+	routerAPI.HandleFunc(urlAPI+"add/{base64uri}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		hash := vars["hash"]
-		link := ""
+		base64uri := vars["base64uri"]
 
-		if len(hash) == 40 || len(hash) == 32 {
-			link = "magnet:?xt=urn:btih:" + hash
-		} else {
-			base64link, err := base64.StdEncoding.DecodeString(hash)
+		uri, err := base64.StdEncoding.DecodeString(base64uri)
 
-			if err != nil {
-				http.Error(w, failedToAddTorrent(), http.StatusNotFound)
-				return
-			}
-
-			link = string(base64link)
+		if err != nil {
+			http.Error(w, failedToAddTorrent(), http.StatusNotFound)
+			return
 		}
 
 		for tryCount := 0; tryCount < 4; tryCount++ {
@@ -192,10 +185,10 @@ func handleAPI(cors bool) {
 				time.Sleep(10 * time.Second)
 			}
 
-			t := addTorrent(link)
+			t := addTorrent(string(uri))
 
 			if t != nil {
-				log.Println("Add torrent:", link)
+				log.Println("Add torrent:", string(uri))
 				io.WriteString(w, torrentFilesList(r.Host, t.Files()))
 				return
 			} else if len(torrents) == 0 {
