@@ -136,7 +136,7 @@ func addTorrent(uri string) *torrent.Torrent {
 
 	if strings.HasPrefix(uri, "magnet:") {
 		// Add magnet link
-		spec, err = torrent.TorrentSpecFromMagnetURI(uri)
+		spec, err = torrent.TorrentSpecFromMagnetUri(uri)
 		receivedTorrent = nil
 	} else if receivedTorrent != nil {
 		// Add previously received torrent file

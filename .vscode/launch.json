@@ -10,7 +10,18 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}",
-      "args": ["-log", "-storagetype", "file", "-dir", "\\wrserver"]
+      "args": [
+        "-log",
+        "-cors",
+        "-storagetype",
+        "file",
+        "-dir",
+        "\\wrserver",
+        "-jackettaddress",
+        "http://192.168.0.2:9117",
+        "-jackettkey",
+        "e1mraldyss0sp70gkk7pdf2yxlibg1gl"
+      ]
     },
     {
       "name": "Memory Storage 64M",
@@ -18,7 +29,16 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}",
-      "args": ["-log", "-memorysize", "64"]
+      "args": [
+        "-log",
+        "-cors",
+        "-memorysize",
+        "64",
+        "-jackettaddress",
+        "http://192.168.0.2:9117",
+        "-jackettkey",
+        "e1mraldyss0sp70gkk7pdf2yxlibg1gl"
+      ]
     },
     {
       "name": "Memory Storage 128M",
@@ -28,6 +48,7 @@
       "program": "${workspaceFolder}",
       "args": [
         "-log",
+        "-cors",
         "-memorysize",
         "128",
         "-jackettaddress",
