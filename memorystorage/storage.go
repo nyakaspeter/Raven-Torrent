@@ -37,7 +37,7 @@ func SetMemorySize(memorySize int64, pieceLength int64) {
 
 func onEvicted(key interface{}, value interface{}) {
 	needToDeleteKey = key.(int)
-	runtime.GC()
+	//runtime.GC()
 	//log.Printf("Removed piece from LRU: %d, LRU space: %d/%d", needToDeleteKey, lruStorage.Len(), maxCount)
 }
 
@@ -101,7 +101,8 @@ func storageWriteAt(mt *memoryTorrent, key int, b []byte, off int64) (int, error
 
 	if newPiece {
 		//log.Printf("Added new piece to LRU: %d, LRU space: %d/%d", key, lruStorage.Len(), maxCount)
-		//logMemStats()
+		runtime.GC()
+		logMemStats()
 	}
 
 	// Before return check if need to free up some memory
