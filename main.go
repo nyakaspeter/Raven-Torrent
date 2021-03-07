@@ -54,7 +54,7 @@ func handleSignals() {
 	signal.Notify(c, os.Interrupt)
 
 	go func() {
-		for _ = range c {
+		for range c {
 			// ^C, handle it
 			procQuit <- true
 		}

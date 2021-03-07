@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -24,11 +25,16 @@ import (
 
 	"golang.org/x/text/encoding/charmap"
 
+	"github.com/koron/go-ssdp"
+	"github.com/silentmurdock/wrserver/dlnacast"
 	"github.com/silentmurdock/wrserver/providers"
 )
 
 var (
-	urlAPI = "/api/"
+	srvHOST     = ""
+	srvPORT     = 0
+	castsrvPORT = 3500
+	urlAPI      = "/api/"
 
 	// TMDB API key
 	TMDBKey = "a4d9ad8d2d072c50dc998cc0d1a508fa"
@@ -39,6 +45,8 @@ var (
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
+
+	castserver *dlnacast.HTTPserver = nil
 )
 
 func setOSUserAgent(userAgent string) {
@@ -188,7 +196,7 @@ func handleAPI(cors bool) {
 			t := addTorrent(string(uri))
 
 			if t != nil {
-				log.Println("Add torrent:", string(uri))
+				log.Println("Added torrent:", t.InfoHash().String())
 				io.WriteString(w, torrentFilesList(r.Host, t.Files()))
 				return
 			} else if len(torrents) == 0 {
@@ -200,6 +208,123 @@ func handleAPI(cors bool) {
 		if len(torrents) > 0 {
 			http.Error(w, onlyOneTorrent(), http.StatusNotFound)
 		}
+	})
+
+	routerAPI.HandleFunc(urlAPI+"getmediarenderers", func(w http.ResponseWriter, r *http.Request) {
+		devices := []mediaRenderer{}
+		list, err := ssdp.Search(ssdp.All, 1, "")
+
+		if err != nil || len(list) == 0 {
+			http.Error(w, noMediaRenderersFound(), http.StatusNotFound)
+			log.Println("No media renderers found.")
+		}
+
+		for _, srv := range list {
+			if srv.Type == "urn:schemas-upnp-org:service:AVTransport:1" {
+				duplicate := false
+				for _, device := range devices {
+					if device.Location == srv.Location {
+						duplicate = true
+					}
+				}
+
+				if !duplicate {
+					if friendlyName, err := dlnacast.GetDeviceFriendlyName(srv.Location); err != nil {
+						devices = append(devices, mediaRenderer{Name: srv.Server, Location: srv.Location})
+					} else {
+						devices = append(devices, mediaRenderer{Name: friendlyName, Location: srv.Location})
+					}
+				}
+			}
+		}
+
+		if len(devices) > 0 {
+			io.WriteString(w, mediaRenderersList(devices))
+		} else {
+			http.Error(w, noMediaRenderersFound(), http.StatusNotFound)
+			log.Println("No media renderers found.")
+		}
+	})
+
+	routerAPI.HandleFunc(urlAPI+"cast/{base64location}/{base64query}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		var err error
+		var videoURL = ""
+		var subtitlesURL = ""
+		var videoTitle = "video"
+
+		location, err := base64.StdEncoding.DecodeString(vars["base64location"])
+		query, err := base64.StdEncoding.DecodeString(vars["base64query"])
+
+		if err != nil {
+			http.Error(w, castingFailed(), http.StatusNotFound)
+			return
+		}
+
+		params, err := url.ParseQuery(string(query))
+
+		if err != nil {
+			http.Error(w, castingFailed(), http.StatusNotFound)
+			return
+		}
+
+		if params["video"] != nil && params["video"][0] != "" {
+			videoURL = params["video"][0]
+		}
+
+		if params["subtitle"] != nil && params["subtitle"][0] != "" {
+			subtitlesURL = params["subtitle"][0]
+		}
+
+		if params["title"] != nil && params["title"][0] != "" {
+			videoTitle = params["title"][0]
+		}
+
+		transportURL, controlURL, err := dlnacast.GetAvTransportUrl(string(location))
+
+		if err != nil || videoURL == "" {
+			http.Error(w, castingFailed(), http.StatusNotFound)
+			return
+		}
+
+		videoURL = strings.Replace(videoURL, "localhost", srvHOST, 1)
+		subtitlesURL = strings.Replace(subtitlesURL, "localhost", srvHOST, 1)
+
+		whereToListen := fmt.Sprintf("%s:%d", srvHOST, castsrvPORT)
+		callbackURL := fmt.Sprintf("http://%s/callback", whereToListen)
+
+		payload := &dlnacast.TVPayload{
+			TransportURL: transportURL,
+			ControlURL:   controlURL,
+			CallbackURL:  callbackURL,
+			VideoURL:     videoURL,
+			SubtitlesURL: subtitlesURL,
+			VideoTitle:   videoTitle,
+		}
+
+		serverStarted := make(chan struct{})
+
+		if castserver == nil {
+			srv := dlnacast.CreateServer(whereToListen)
+			castserver = &srv
+		} else {
+			castserver.StopServer()
+		}
+
+		go func() {
+			castserver.StartServer(serverStarted, payload)
+		}()
+		// Wait for HTTP server to properly initialize
+		<-serverStarted
+
+		err = payload.SendtoTV("Play1")
+
+		if err != nil || videoURL == "" {
+			http.Error(w, castingFailed(), http.StatusNotFound)
+			return
+		}
+
+		io.WriteString(w, "{\"success\": true}")
 	})
 
 	routerAPI.HandleFunc(urlAPI+"delete/{hash}", func(w http.ResponseWriter, r *http.Request) {
@@ -308,15 +433,7 @@ func handleAPI(cors bool) {
 		langs := strings.Split(vars["lang"], ",")
 
 		// Fallback language always English
-		fallbackLang := false
-		for _, l := range langs {
-			if l == "eng" {
-				fallbackLang = true
-				break
-			}
-		}
-
-		if fallbackLang == false {
+		if len(langs) == 0 {
 			langs = append(langs, "eng")
 		}
 
@@ -404,15 +521,7 @@ func handleAPI(cors bool) {
 		langs := strings.Split(vars["lang"], ",")
 
 		// Fallback language always English
-		fallbackLang := false
-		for _, l := range langs {
-			if l == "eng" {
-				fallbackLang = true
-				break
-			}
-		}
-
-		if fallbackLang == false {
+		if len(langs) == 0 {
 			langs = append(langs, "eng")
 		}
 
@@ -518,15 +627,7 @@ func handleAPI(cors bool) {
 				langs := strings.Split(vars["lang"], ",")
 
 				// Fallback language always English
-				fallbackLang := false
-				for _, l := range langs {
-					if l == "eng" {
-						fallbackLang = true
-						break
-					}
-				}
-
-				if fallbackLang == false {
+				if len(langs) == 0 {
 					langs = append(langs, "eng")
 				}
 
@@ -873,8 +974,13 @@ func startHTTPServer(host string, port int, cors bool) *http.Server {
 		localIP = getLocalIP()
 	}
 
+	srvHOST = localIP
+	srvPORT = port
+
+	address := fmt.Sprintf("http://%s:%d", localIP, port)
+
 	// Must appear
-	fmt.Printf("White Raven Server Version %s Started On Address: http://%s:%d\n", version, localIP, port)
+	fmt.Printf("White Raven Server Version %s Started On Address: %s\n", version, address)
 
 	handleAPI(cors)
 

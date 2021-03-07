@@ -159,14 +159,15 @@ func addTorrent(uri string) *torrent.Torrent {
 
 	infoHash := spec.InfoHash.String()
 	if t, ok := torrents[infoHash]; ok {
+		receivedTorrent = nil
 		return t.torrent
 	}
 
-	// Intended for streaming so only one torrent stream allowed at a time
-	if len(torrents) > 0 || gettingTorrent == true {
-		log.Println("Only one torrent stream allowed at a time.")
-		return nil
-	}
+	// // Intended for streaming so only one torrent stream allowed at a time
+	// if len(torrents) > 0 || gettingTorrent == true {
+	// 	log.Println("Only one torrent stream allowed at a time.")
+	// 	return nil
+	// }
 
 	gettingTorrent = true
 
@@ -279,6 +280,9 @@ func getFileByPath(search string, files []*torrent.File) int {
 }
 
 func serveTorrentFile(w http.ResponseWriter, r *http.Request, file *torrent.File) {
+	w.Header().Set("TransferMode.DLNA.ORG", "Streaming")
+	w.Header().Set("contentFeatures.dlna.org", "DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000")
+
 	reader := file.NewReader()
 	// Never set a smaller buffer than the maximum torrent piece length!
 	reader.SetReadahead(maxPieceLength * megaByte)

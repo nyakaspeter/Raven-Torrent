@@ -74,6 +74,16 @@ type showMagnetLinksResponse struct {
 	Results []out.OutputShowStruct `json:"results"`
 }
 
+type mediaRenderersResponse struct {
+	Success bool            `json:"success"`
+	Results []mediaRenderer `json:"results"`
+}
+
+type mediaRenderer struct {
+	Name     string `json:"name"`
+	Location string `json:"location"`
+}
+
 func serverInfo() string {
 	message := messageResponse{
 		Success: true,
@@ -402,6 +412,39 @@ func noTvmazeDataFound() string {
 	message := messageResponse{
 		Success: false,
 		Message: "No TVmaze data found.",
+	}
+
+	messageString, _ := json.Marshal(message)
+
+	return string(messageString)
+}
+
+func noMediaRenderersFound() string {
+	message := messageResponse{
+		Success: false,
+		Message: "No media renderers found.",
+	}
+
+	messageString, _ := json.Marshal(message)
+
+	return string(messageString)
+}
+
+func mediaRenderersList(renderers []mediaRenderer) string {
+	message := mediaRenderersResponse{
+		Success: true,
+		Results: renderers,
+	}
+
+	messageString, _ := json.Marshal(message)
+
+	return string(messageString)
+}
+
+func castingFailed() string {
+	message := messageResponse{
+		Success: false,
+		Message: "Casting to device failed.",
 	}
 
 	messageString, _ := json.Marshal(message)
