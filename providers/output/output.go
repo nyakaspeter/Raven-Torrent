@@ -81,15 +81,17 @@ func GuessLanguageFromString(value string) string {
 }
 
 func GuessSeasonEpisodeNumberFromString(value string) (string, string) {
-	season := ""
-	episode := ""
+	seasonRegex := regexp.MustCompile(`(s0*\d+)`)
+	episodeRegex := regexp.MustCompile(`(e0*\d+)`)
 
-	re := regexp.MustCompile(`(S0*)(\d*)(E*0*)(\d*)`)
-	sub := re.FindStringSubmatch(value)
-	if len(sub) > 0 {
-		season = sub[2]
-		episode = sub[4]
-	}
+	seasonPrefixRegex := regexp.MustCompile(`(s0*)`)
+	episodePrefixRegex := regexp.MustCompile(`(e0*)`)
+
+	season := seasonRegex.FindString(strings.ToLower(value))
+	episode := episodeRegex.FindString(strings.ToLower(value))
+
+	season = seasonPrefixRegex.ReplaceAllString(season, "")
+	episode = episodePrefixRegex.ReplaceAllString(episode, "")
 
 	return season, episode
 }

@@ -11,6 +11,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
@@ -144,11 +145,19 @@ func addTorrent(uri string) *torrent.Torrent {
 	} else {
 		// Download torrent file from
 		r, e := fetchTorrent(uri)
-		if e != nil {
-			err = e
-		} else {
+		if e == nil {
 			receivedTorrent, err = metainfo.Load(r)
 			spec = torrent.TorrentSpecFromMetaInfo(receivedTorrent)
+		} else {
+			urlError, isUrlError := e.(*url.Error)
+			if isUrlError && strings.HasPrefix(urlError.URL, "magnet:") {
+				// If Jackett redirected to a magnet link
+				uri = urlError.URL
+				spec, err = torrent.TorrentSpecFromMagnetUri(uri)
+				receivedTorrent = nil
+			} else {
+				err = e
+			}
 		}
 	}
 

@@ -46,7 +46,8 @@ var (
 		WriteBufferSize: 1024,
 	}
 
-	castserver *dlnacast.HTTPserver = nil
+	castServer *dlnacast.HTTPserver = nil
+	tvPayload  *dlnacast.TVPayload  = nil
 )
 
 func setOSUserAgent(userAgent string) {
@@ -293,7 +294,7 @@ func handleAPI(cors bool) {
 		whereToListen := fmt.Sprintf("%s:%d", srvHOST, castsrvPORT)
 		callbackURL := fmt.Sprintf("http://%s/callback", whereToListen)
 
-		payload := &dlnacast.TVPayload{
+		newPayload := &dlnacast.TVPayload{
 			TransportURL: transportURL,
 			ControlURL:   controlURL,
 			CallbackURL:  callbackURL,
@@ -304,20 +305,23 @@ func handleAPI(cors bool) {
 
 		serverStarted := make(chan struct{})
 
-		if castserver == nil {
+		if castServer == nil {
 			srv := dlnacast.CreateServer(whereToListen)
-			castserver = &srv
+			castServer = &srv
 		} else {
-			castserver.StopServer()
+			tvPayload.SendtoTV("Stop")
+			castServer.StopServer()
 		}
 
+		tvPayload = newPayload
+
 		go func() {
-			castserver.StartServer(serverStarted, payload)
+			castServer.StartServer(serverStarted, newPayload)
 		}()
 		// Wait for HTTP server to properly initialize
 		<-serverStarted
 
-		err = payload.SendtoTV("Play1")
+		err = newPayload.SendtoTV("Play1")
 
 		if err != nil || videoURL == "" {
 			http.Error(w, castingFailed(), http.StatusNotFound)
