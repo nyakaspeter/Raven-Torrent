@@ -408,10 +408,14 @@ func noTmdbDataFound() string {
 	return string(messageString)
 }
 
-func noTvmazeDataFound() string {
+func outputTvMazeData(data string) string {
+	return "{\"success\":true,\"results\":" + data + "}"
+}
+
+func noTvMazeDataFound() string {
 	message := messageResponse{
 		Success: false,
-		Message: "No TVmaze data found.",
+		Message: "No TVMaze data found.",
 	}
 
 	messageString, _ := json.Marshal(message)

@@ -210,11 +210,6 @@ func MirrorTmdbInfo(qtype string, tmdbid string, lang string) string {
 	return tmdb.MirrorTmdbInfo(qtype, tmdbid, lang)
 }
 
-func GetShowEpisodes(query string) string {
-	params, err := url.ParseQuery(query)
-	if err != nil {
-		return "[]"
-	}
-	tvmazeId := tvmaze.GetTvmazeIdByImdbOrTvdbId(params)
-	return tvmaze.GetEpisodesByTvmazeId(tvmazeId)
+func GetTvMazeEpisodes(tvdb string, imdb string) string {
+	return tvmaze.GetTvMazeEpisodes(tvdb, imdb)
 }

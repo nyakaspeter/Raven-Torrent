@@ -46,6 +46,8 @@ var (
 		WriteBufferSize: 1024,
 	}
 
+	ws *websocket.Conn
+
 	castServer *dlnacast.HTTPserver = nil
 	tvPayload  *dlnacast.TVPayload  = nil
 )
@@ -123,7 +125,7 @@ func decodeData(encData []byte, enc string) string {
 	return string(out)
 }
 
-func handleAPI(cors bool) {
+func handleAPI(cors bool) http.Handler {
 	routerAPI := mux.NewRouter()
 	routerAPI.SkipClean(true)
 
@@ -868,16 +870,39 @@ func handleAPI(cors bool) {
 		}
 	})
 
-	routerAPI.HandleFunc(urlAPI+"getshowepisodes/{query}", func(w http.ResponseWriter, r *http.Request) {
+	routerAPI.HandleFunc(urlAPI+"tvmazeepisodes/tvdb/{tvdb}/imdb/{imdb}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TV show episodes")
+		log.Println("Get TVMaze episodes")
 
-		output := providers.GetShowEpisodes(vars["query"])
-
-		if output != "[]" {
-			io.WriteString(w, output)
+		output := providers.GetTvMazeEpisodes(vars["tvdb"], vars["imdb"])
+		if output != "" {
+			io.WriteString(w, outputTvMazeData(output))
 		} else {
-			http.Error(w, noTvmazeDataFound(), http.StatusNotFound)
+			http.Error(w, noTvMazeDataFound(), http.StatusNotFound)
+		}
+	})
+
+	routerAPI.HandleFunc(urlAPI+"tvmazeepisodes/tvdb/{tvdb}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		log.Println("Get TVMaze episodes")
+
+		output := providers.GetTvMazeEpisodes(vars["tvdb"], "")
+		if output != "" {
+			io.WriteString(w, outputTvMazeData(output))
+		} else {
+			http.Error(w, noTvMazeDataFound(), http.StatusNotFound)
+		}
+	})
+
+	routerAPI.HandleFunc(urlAPI+"tvmazeepisodes/imdb/{imdb}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		log.Println("Get TVMaze episodes")
+
+		output := providers.GetTvMazeEpisodes("", vars["imdb"])
+		if output != "" {
+			io.WriteString(w, outputTvMazeData(output))
+		} else {
+			http.Error(w, noTvMazeDataFound(), http.StatusNotFound)
 		}
 	})
 
@@ -889,7 +914,7 @@ func handleAPI(cors bool) {
 	routerAPI.HandleFunc(urlAPI+"websocket", func(w http.ResponseWriter, r *http.Request) {
 		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
-		ws, _ := upgrader.Upgrade(w, r, nil) // Error ignored
+		ws, _ = upgrader.Upgrade(w, r, nil) // Error ignored
 
 		for {
 			// Read message from ws
@@ -927,30 +952,16 @@ func handleAPI(cors bool) {
 		}
 	})
 
-	// Enable CORS for api urls if required
-	if cors == false {
-		http.Handle(urlAPI, routerAPI)
-	} else {
-		http.Handle(urlAPI, handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(routerAPI))
-	}
-
 	// Create torrent magnet send page from main page
-	sendMagnetPage := mux.NewRouter()
-	sendMagnetPage.SkipClean(true)
-
-	sendMagnetPage.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, resourceNotFound(), http.StatusNotFound)
-	})
-
-	sendMagnetPage.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	routerAPI.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, createServerPage())
 	})
 
-	// Enable CORS for torrent sender page if required
+	// Enable CORS for api urls if required
 	if cors == false {
-		http.Handle("/", sendMagnetPage)
+		return routerAPI
 	} else {
-		http.Handle("/", handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(sendMagnetPage))
+		return handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(routerAPI)
 	}
 }
 
@@ -971,6 +982,7 @@ func startHTTPServer(host string, port int, cors bool) *http.Server {
 		Addr:         fmt.Sprintf("%s:%d", host, port),
 		ReadTimeout:  38 * time.Second,
 		WriteTimeout: 38 * time.Second,
+		Handler:      handleAPI(cors),
 	}
 
 	localIP := host
@@ -985,8 +997,6 @@ func startHTTPServer(host string, port int, cors bool) *http.Server {
 
 	// Must appear
 	fmt.Printf("White Raven Server Version %s Started On Address: %s\n", version, address)
-
-	handleAPI(cors)
 
 	go func() {
 		if err := newsrv.ListenAndServe(); err != nil {
