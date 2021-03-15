@@ -6,7 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.1
 	github.com/anacrolix/log v0.8.0
 	github.com/anacrolix/multiless v0.0.0-20210222022749-ef43011a77ec // indirect
-	github.com/anacrolix/torrent v1.25.0
+	github.com/anacrolix/torrent v1.25.1
 	github.com/dustin/go-humanize v1.0.0
 	github.com/elliotchance/orderedmap v1.4.0 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
