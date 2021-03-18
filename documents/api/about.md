@@ -1,4 +1,4 @@
-# Get Server Information
+# Get server information
 
 Get server information.
 

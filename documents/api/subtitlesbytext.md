@@ -1,4 +1,4 @@
-# Search Subtitles By Query Text
+# Search subtitles by query text
 
 Search subtitles for movies or tv shows by query text.
 

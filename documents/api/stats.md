@@ -1,4 +1,4 @@
-# Get Running Torrent Statistics By Hash
+# Get running torrent statistics by hash
 
 Get active torrent statistics by 40 characters long infohash.
 

@@ -1,4 +1,4 @@
-# Delete Torrent By Hash
+# Delete torrent by hash
 
 Delete torrent by 40 characters long infohash.
 

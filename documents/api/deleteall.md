@@ -1,4 +1,4 @@
-# Deleteall Torrent By Hash
+# Delete all running torrents
 
 Delete all active torrents.
 

@@ -1,4 +1,4 @@
-# Get Movie Torrents By IMDB Id And/Or Query Text
+# Get movie torrents by IMDB id or query text or both
 
 Search torrent links for movie.
 

@@ -1,4 +1,4 @@
-# Get More Info About Movie Or Tv Show By TMDB Id
+# Get more info about movie or tv show by TMDB id
 
 Get more info about movie or tv show by TMDB id.
 

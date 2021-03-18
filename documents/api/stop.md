@@ -1,4 +1,4 @@
-# Stop Server
+# Stop server
 
 Stop the server and exit from the application.
 

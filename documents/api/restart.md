@@ -1,4 +1,4 @@
-# Restart Torrent Client
+# Restart torrent client
 
 Restart torrent client with new download and upload speed settings.
 

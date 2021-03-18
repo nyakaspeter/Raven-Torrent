@@ -1,4 +1,4 @@
-# Get TV Show Torrents By IMDB Id And/Or Query Text
+# Get tv show torrents by IMDB id or query text or both
 
 Search torrent links for tv show.
 

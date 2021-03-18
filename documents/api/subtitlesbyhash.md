@@ -1,4 +1,4 @@
-# Search Subtitles By Inner File Hash
+# Search subtitles by inner file hash
 
 Search subtitles for movies or tv shows by torrent's inner file hash.
 

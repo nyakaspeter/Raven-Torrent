@@ -1,4 +1,4 @@
-# Stream Or Download The Selected File
+# Stream or download the selected file
 
 Stream or download the selected file over http connection.
 

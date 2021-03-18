@@ -1,4 +1,4 @@
-# Add Torrent By Hash
+# Add torrent by magnet link
 
 Add torrent by 40 characters long infohash.
 

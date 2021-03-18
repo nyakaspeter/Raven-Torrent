@@ -1,6 +1,6 @@
 # White Raven Server
 
-**White Raven Server is a REST-like API controlled torrent client application to find movies and tv shows from various sources and stream them over http connection. Mainly created for [White Raven](https://github.com/silentmurdock/whiteraven), which is a torrent player application for Samsung Smart TV E, F, H series.**
+**This repo is a fork of [White Raven Server](https://github.com/silentmurdock/wrserver) by Murdock. White Raven Server is a REST-like API controlled torrent client application to find movies and tv shows from various sources and stream them over http connection. Mainly created for [White Raven](https://github.com/nyakaspeter/White-Raven), which is a torrent player application for Samsung Smart TV E, F, H series.**
 
 ## HTTP API Functions
 
@@ -12,7 +12,7 @@
 
 ### Torrent related
 
-- [Add torrent by hash](documents/api/add.md)
+- [Add torrent by magnet link](documents/api/add.md)
 - [Delete torrent by hash](documents/api/delete.md)
 - [Delete all running torrents](documents/api/deleteall.md)
 - [Get all running torrents](documents/api/torrents.md)
@@ -21,12 +21,12 @@
 
 ### Movie or TV Show related
 
-- [Get movie torrents by IMDB id or query text or both](documents/api/getmoviemagnet.md)
-- [Get tv show torrents by IMDB id or query text or both](documents/api/getshowmagnet.md)
 - [Discover movies or tv shows](documents/api/tmdbdiscover.md)
 - [Search movies or tv shows by query text](documents/api/tmdbsearch.md)
 - [Get more info about movie or tv show by TMDB id](documents/api/tmdbinfo.md)
-- [Get tv show episodes by IMDB id or TVDB id](documents/api/tvmazeepisodes.md)
+- [Get tv show episodes by IMDB id or TVDB id or both](documents/api/tvmazeepisodes.md)
+- [Get movie torrents by IMDB id or query text or both](documents/api/getmoviemagnet.md)
+- [Get tv show torrents by IMDB id or query text or both](documents/api/getshowmagnet.md)
 
 ### Subtitle related
 
@@ -59,69 +59,107 @@
 - **-help** print this help message
 - **-log** enable log messages
 
+## How to use
+
+White Raven Server is a command line application. Some examples for usage:
+
+<details>
+<summary>Running the executable file without parameters to serve torrent data from memory</summary>
+
+```
+wrserver
+```
+
+</details>
+
+<details>
+<summary>Running the executable file with parameters to serve torrent data from local disk</summary>
+
+```
+wrserver -storagetype="file" -dir="downloads"
+```
+
+</details>
+
+<details>
+<summary>Running the executable file with parameters to use Jackett for torrent search</summary>
+
+```
+wrserver -jackettaddress="http://192.168.0.2:9117" -jackettkey="1n53rty0urj4ck3tt4p1k3yh3r3"
+```
+
+</details>
+
 ## Build Instructions
 
-### Build On Windows
+You can build the application by running the following commands from the project directory. [Go](https://golang.org/) must be installed for these to work.
 
-**Build in vendor mode for Samsung Smart TV E, F, H ARM series:**
-
-```
-$ set GOOS=linux
-$ set GOARCH=arm
-$ set GOARM=7
-$ go build -ldflags="-s -w" -mod=vendor -o wrserver
-```
-
-**Build in vendor mode for Windows x32:**
+<details>
+<summary>Build for Samsung Smart TV E, F, H ARM series</summary>
 
 ```
-$ set GOOS=windows
-$ set GOARCH=386
-$ go build -ldflags="-s -w" -mod=vendor -o wrserver.exe
+set GOOS=linux
+set GOARCH=arm
+set GOARM=7
+go build -ldflags="-s -w" -o wrserver
 ```
 
-**Build in vendor mode for Windows x64:**
+</details>
+
+<details>
+<summary>Build for Windows (x64)</summary>
 
 ```
-$ set GOOS=windows
-$ set GOARCH=amd64
-$ set CGO_ENABLED=0
-$ go build -ldflags="-s -w" -mod=vendor -o wrserver.exe
+set GOOS=windows
+set GOARCH=amd64
+set CGO_ENABLED=0
+go build -ldflags="-s -w" -o wrserver.exe
 ```
 
-**Build in vendor mode for Linux x32:**
+</details>
+
+<details>
+<summary>Build for Windows (x86)</summary>
 
 ```
-$ set GOOS=linux
-$ set GOARCH=386
-$ go build -ldflags="-s -w" -mod=vendor -o wrserver
+set GOOS=windows
+set GOARCH=386
+go build -ldflags="-s -w" -o wrserver.exe
 ```
 
-**Build in vendor mode for Linux x64:**
+</details>
+
+<details>
+<summary>Build for Linux (x64)</summary>
 
 ```
-$ set GOOS=linux
-$ set GOARCH=amd64
-$ go build -ldflags="-s -w" -mod=vendor -o wrserver
+set GOOS=linux
+set GOARCH=amd64
+go build -ldflags="-s -w" -o wrserver
 ```
 
-## Run The Server
+</details>
 
-**Simply run the executable file without parameters to serve torrent data from memory.**
-
-```
-$ wrserver
-```
-
-**Run the executable file with the following parameters to serve torrent data from local disk.**
+<details>
+<summary>Build for Linux (x86)</summary>
 
 ```
-$ wrserver -storagetype="file" -dir="downloads"
+set GOOS=linux
+set GOARCH=386
+go build -ldflags="-s -w" -o wrserver
 ```
 
-## Note For Releases
+</details>
 
-The releases always compressed with the latest version of [UPX](https://upx.github.io), an advanced executable file packer to decrease the size of the application. This is important for embedded devices such as Samsung Smart TVs because they have a very limited amount of resources!
+## Donation
+Support the original creator using these addresses:
+```
+BTC: 3NHNGcGEyD3m88nWZpNCSjnGq95rgFq4P5
+LTC: MNyTkncUNkLgv8TCuPn69NVvBXnEsrtWcW
+```
+```
+PATREON: https://www.patreon.com/murdock
+```
 
 ## License
 

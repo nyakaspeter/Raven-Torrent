@@ -1,4 +1,4 @@
-# Discover Movies Or Tv Shows
+# Discover movies or tv shows
 
 Discover movies or tv shows.
 

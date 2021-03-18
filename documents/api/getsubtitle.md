@@ -1,4 +1,4 @@
-# Download Subtitle File
+# Download subtitle file
 
 Download and serve the raw content of the subtitle file from memory.
 

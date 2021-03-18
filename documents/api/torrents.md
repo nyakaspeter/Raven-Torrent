@@ -1,4 +1,4 @@
-# Get All Running Torrents
+# Get all running torrents
 
 Get all active torrents.
 

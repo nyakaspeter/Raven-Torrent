@@ -1,4 +1,4 @@
-# Search Movies Or Tv Shows By Query Text
+# Search movies or tv shows by query text
 
 Search movies or tv shows by query text.
 

@@ -1,4 +1,4 @@
-# Search Subtitles By Imdb Id
+# Search subtitles by IMDB id
 
 Search subtitles for movies or tv shows by IMDB id.
 
