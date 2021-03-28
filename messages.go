@@ -33,6 +33,7 @@ type torrentListResponse struct {
 
 type torrentFilesResultsResponse struct {
 	Success bool                   `json:"success"`
+	Hash    string                 `json:"hash"`
 	Results []torrentFilesResponse `json:"results"`
 }
 
@@ -57,6 +58,7 @@ type subtitleFilesResponse struct {
 	SubFormat    string `json:"subformat"`
 	SubEncoding  string `json:"subencoding"`
 	SubData      string `json:"subdata"`
+	VttData      string `json:"vttdata"`
 }
 
 type subtitleFilesResultsResponse struct {
@@ -117,7 +119,7 @@ func restartTorrentClient() string {
 	return string(messageString)
 }
 
-func torrentFilesList(address string, files []*torrent.File) string {
+func torrentFilesList(address string, infohash string, files []*torrent.File) string {
 	sortFiles(files)
 
 	var results []torrentFilesResponse
@@ -134,6 +136,7 @@ func torrentFilesList(address string, files []*torrent.File) string {
 
 	message := torrentFilesResultsResponse{
 		Success: true,
+		Hash:    infohash,
 		Results: results,
 	}
 
@@ -333,6 +336,7 @@ func subtitleFilesList(address string, files osdb.Subtitles, lang string) string
 				SubFormat:    f.SubFormat,
 				SubEncoding:  f.SubEncoding,
 				SubData:      "http://" + address + "/api/getsubtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/encode/" + f.SubEncoding + "/subtitle.srt",
+				VttData:      "http://" + address + "/api/getsubtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/encode/" + f.SubEncoding + "/subtitle.vtt",
 			}
 
 			results = append(results, result)

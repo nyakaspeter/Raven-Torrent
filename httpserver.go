@@ -21,11 +21,11 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/koron/go-ssdp"
+	"github.com/martinlindhe/subtitles"
 	"github.com/oz/osdb"
-
 	"golang.org/x/text/encoding/charmap"
 
-	"github.com/koron/go-ssdp"
 	"github.com/silentmurdock/wrserver/dlnacast"
 	"github.com/silentmurdock/wrserver/providers"
 )
@@ -120,7 +120,10 @@ func decodeData(encData []byte, enc string) string {
 		dec = charmap.Windows1257.NewDecoder()
 	case "CP1258":
 		dec = charmap.Windows1258.NewDecoder()
+	default:
+		return string(encData)
 	}
+
 	out, _ := dec.Bytes(encData)
 	return string(out)
 }
@@ -200,7 +203,7 @@ func handleAPI(cors bool) http.Handler {
 
 			if t != nil {
 				log.Println("Added torrent:", t.InfoHash().String())
-				io.WriteString(w, torrentFilesList(r.Host, t.Files()))
+				io.WriteString(w, torrentFilesList(r.Host, t.InfoHash().String(), t.Files()))
 				return
 			} else if len(torrents) == 0 {
 				http.Error(w, failedToAddTorrent(), http.StatusNotFound)
@@ -688,7 +691,7 @@ func handleAPI(cors bool) http.Handler {
 		}
 	})
 
-	routerAPI.HandleFunc(urlAPI+"getsubtitle/{base64path}/encode/{encode}/subtitle.srt", func(w http.ResponseWriter, r *http.Request) {
+	routerAPI.HandleFunc(urlAPI+"getsubtitle/{base64path}/encode/{encode}/subtitle.{subtype}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
 		if subtitleurl, err := base64.StdEncoding.DecodeString(vars["base64path"]); err == nil {
@@ -713,31 +716,37 @@ func handleAPI(cors bool) http.Handler {
 					}
 					fileHandler.Close()
 
-					contentType := http.DetectContentType(data)
-
-					w.Header().Set("Content-Disposition", "filename=subtitle.srt")
-					w.Header().Set("Content-Type", contentType)
-
+					// Remove UTF BOM
 					if data[0] == 0xef && data[1] == 0xbb && data[2] == 0xbf {
-						trimmedData := bytes.Trim(data, "\xef\xbb\xbf")
-						/*writeErr := ioutil.WriteFile("tmp/subtitle.srt", data, 0644)
-						if writeErr != nil {
-							log.Println("Subtitle save error")
-						}*/
-						io.WriteString(w, strings.Replace(string(trimmedData), "{\\an8}", "", -1))
-					} else {
-						/*writeErr := ioutil.WriteFile("tmp/subtitle.srt", []byte("\xef\xbb\xbf" + decodeData(data, vars["encode"])), 0644)
-						if writeErr != nil {
-							log.Println("Subtitle save error")
-						}*/
-						io.WriteString(w, strings.Replace(decodeData(data, vars["encode"]), "{\\an8}", "", -1))
+						data = bytes.Trim(data, "\xef\xbb\xbf")
 					}
+
+					srt := decodeData(data, vars["encode"])
+
+					subtitle, err := subtitles.NewFromSRT(srt)
+					if err != nil {
+						http.Error(w, failedToLoadSubtitle(), http.StatusNotFound)
+						return
+					}
+
+					if vars["subtype"] == "srt" {
+						w.Header().Set("Content-Disposition", "filename=subtitle.srt")
+						w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+						io.WriteString(w, subtitle.RemoveAds().AsSRT())
+					} else if vars["subtype"] == "vtt" {
+						w.Header().Set("Content-Disposition", "filename=subtitle.vtt")
+						w.Header().Set("Content-Type", "text/vtt; charset=utf-8")
+						io.WriteString(w, subtitle.RemoveAds().AsVTT())
+					} else {
+						http.Error(w, failedToLoadSubtitle(), http.StatusNotFound)
+						return
+					}
+
 					break
 				}
 			}
 		} else {
 			http.Error(w, failedToLoadSubtitle(), http.StatusNotFound)
-			return
 		}
 	})
 
