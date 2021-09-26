@@ -24,6 +24,7 @@ import (
 	"github.com/koron/go-ssdp"
 	"github.com/martinlindhe/subtitles"
 	"github.com/oz/osdb"
+	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
 
 	"github.com/silentmurdock/wrserver/dlnacast"
@@ -103,9 +104,11 @@ func fetchZip(zipurl string) (*zip.Reader, error) {
 }
 
 func decodeData(encData []byte, enc string) string {
-	dec := charmap.Windows1250.NewDecoder()
+	var dec *encoding.Decoder
 
 	switch enc {
+	case "CP1250":
+		dec = charmap.Windows1250.NewDecoder()
 	case "CP1251":
 		dec = charmap.Windows1251.NewDecoder()
 	case "CP1252":
