@@ -14,6 +14,8 @@ import (
 
 var jackettAddress = ""
 var jackettKey = ""
+var movieCategories = [...]string{"2000", "2030", "2040"}
+var showCategories = [...]string{"5000", "5030", "5040"}
 
 type apiResponse struct {
 	TorrentResults []struct {
@@ -40,15 +42,12 @@ func SetJackettAddressAndKey(address string, key string) {
 }
 
 func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
-	categories := [...]string{"2030", "2040"}
-
 	outputMovieData := []out.OutputMovieStruct{}
 
-	for _, category := range categories {
+	for _, category := range movieCategories {
 		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + imdb), nil)
 		if err != nil {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 
 		//req.Header.Set("User-Agent", UserAgent)
@@ -59,27 +58,23 @@ func GetMovieMagnetByImdb(imdb string, ch chan<- []out.OutputMovieStruct) {
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 
 		response := apiResponse{}
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 
 		if len(response.TorrentResults) == 0 {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 
 		for _, thistorrent := range response.TorrentResults {
@@ -120,15 +115,12 @@ func GetMovieMagnetByQuery(params map[string][]string, ch chan<- []out.OutputMov
 
 	query = url.QueryEscape(query)
 
-	categories := [...]string{"2030", "2040"}
-
 	outputMovieData := []out.OutputMovieStruct{}
 
-	for _, category := range categories {
+	for _, category := range movieCategories {
 		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + query), nil)
 		if err != nil {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 
 		tr := &http.Transport{
@@ -138,27 +130,23 @@ func GetMovieMagnetByQuery(params map[string][]string, ch chan<- []out.OutputMov
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 
 		response := apiResponse{}
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 
 		if len(response.TorrentResults) == 0 {
-			ch <- []out.OutputMovieStruct{}
-			return
+			break
 		}
 
 		for _, thistorrent := range response.TorrentResults {
@@ -183,15 +171,12 @@ func GetMovieMagnetByQuery(params map[string][]string, ch chan<- []out.OutputMov
 }
 
 func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- []out.OutputShowStruct) {
-	categories := [...]string{"5030", "5040"}
-
 	outputShowData := []out.OutputShowStruct{}
 
-	for _, category := range categories {
+	for _, category := range showCategories {
 		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + imdb), nil)
 		if err != nil {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 
 		tr := &http.Transport{
@@ -201,27 +186,23 @@ func GetShowMagnetByImdb(imdb string, season string, episode string, ch chan<- [
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 
 		response := apiResponse{}
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 
 		if len(response.TorrentResults) == 0 {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 
 		for _, thistorrent := range response.TorrentResults {
@@ -279,15 +260,12 @@ func GetShowMagnetByQuery(params map[string][]string, season string, episode str
 
 	query = url.QueryEscape(query)
 
-	categories := [...]string{"5030", "5040"}
-
 	outputShowData := []out.OutputShowStruct{}
 
-	for _, category := range categories {
+	for _, category := range showCategories {
 		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + query), nil)
 		if err != nil {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 
 		tr := &http.Transport{
@@ -297,27 +275,23 @@ func GetShowMagnetByQuery(params map[string][]string, season string, episode str
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 
 		response := apiResponse{}
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 
 		if len(response.TorrentResults) == 0 {
-			ch <- []out.OutputShowStruct{}
-			return
+			break
 		}
 
 		for _, thistorrent := range response.TorrentResults {

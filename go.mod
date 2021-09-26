@@ -18,7 +18,7 @@ require (
 	github.com/kolo/xmlrpc v0.0.0-20200310150728-e0350524596b // indirect
 	github.com/koron/go-ssdp v0.0.2
 	github.com/marten-seemann/qtls-go1-15 v0.1.2 // indirect
-	github.com/martinlindhe/subtitles v0.0.0-20210301100346-9aa635346c86 // indirect
+	github.com/martinlindhe/subtitles v0.0.0-20210301100346-9aa635346c86
 	github.com/oz/osdb v0.0.0-20190204162748-da06ada9cdc1
 	github.com/pion/dtls/v2 v2.0.8 // indirect
 	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect

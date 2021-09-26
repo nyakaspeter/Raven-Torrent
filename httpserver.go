@@ -38,6 +38,7 @@ var (
 
 	// TMDB API key
 	TMDBKey = "a4d9ad8d2d072c50dc998cc0d1a508fa"
+
 	// OpenSubtitles user agent string
 	OSUserAgent = "White Raven v0.3"
 
@@ -103,6 +104,7 @@ func fetchZip(zipurl string) (*zip.Reader, error) {
 
 func decodeData(encData []byte, enc string) string {
 	dec := charmap.Windows1250.NewDecoder()
+
 	switch enc {
 	case "CP1251":
 		dec = charmap.Windows1251.NewDecoder()
