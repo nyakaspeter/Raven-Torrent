@@ -69,26 +69,20 @@ func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputM
 	for counter > 0 {
 		temp := <-ch
 		if len(temp) > 0 {
-			if len(outputMovieData) > 0 {
-				for _, item := range temp {
-					duplicate := false
-					for i, output := range outputMovieData {
-						if (output.Hash != "" && strings.ToLower(output.Hash) == strings.ToLower(item.Hash)) ||
-							(output.Torrent != "" && output.Provider == item.Provider && output.Title == item.Title) {
-							duplicate = true
-							if outputMovieData[i].Size == "0" && item.Size != "0" {
-								outputMovieData[i].Size = item.Size
-								outputMovieData[i].Title = item.Title
-							}
+			for _, item := range temp {
+				duplicate := false
+				for i, output := range outputMovieData {
+					if (output.Hash != "" && strings.EqualFold(output.Hash, item.Hash)) ||
+						(output.Torrent != "" && output.Provider == item.Provider && output.Title == item.Title) {
+						duplicate = true
+						if outputMovieData[i].Size == "0" && item.Size != "0" {
+							outputMovieData[i].Size = item.Size
+							outputMovieData[i].Title = item.Title
 						}
 					}
-
-					if duplicate == false {
-						outputMovieData = append(outputMovieData, item)
-					}
 				}
-			} else {
-				for _, item := range temp {
+
+				if !duplicate {
 					outputMovieData = append(outputMovieData, item)
 				}
 			}
@@ -153,26 +147,20 @@ func GetShowMagnet(imdbid string, query string, season string, episode string, s
 	for counter > 0 {
 		temp := <-ch
 		if len(temp) > 0 {
-			if len(outputShowData) > 0 {
-				for _, item := range temp {
-					duplicate := false
-					for i, output := range outputShowData {
-						if (output.Hash != "" && strings.ToLower(output.Hash) == strings.ToLower(item.Hash)) ||
-							(output.Torrent != "" && output.Provider == item.Provider && output.Title == item.Title) {
-							duplicate = true
-							if outputShowData[i].Size == "0" && item.Size != "0" {
-								outputShowData[i].Size = item.Size
-								outputShowData[i].Title = item.Title
-							}
+			for _, item := range temp {
+				duplicate := false
+				for i, output := range outputShowData {
+					if (output.Hash != "" && strings.EqualFold(output.Hash, item.Hash)) ||
+						(output.Torrent != "" && output.Provider == item.Provider && output.Title == item.Title) {
+						duplicate = true
+						if outputShowData[i].Size == "0" && item.Size != "0" {
+							outputShowData[i].Size = item.Size
+							outputShowData[i].Title = item.Title
 						}
 					}
-
-					if duplicate == false {
-						outputShowData = append(outputShowData, item)
-					}
 				}
-			} else {
-				for _, item := range temp {
+
+				if !duplicate {
 					outputShowData = append(outputShowData, item)
 				}
 			}
