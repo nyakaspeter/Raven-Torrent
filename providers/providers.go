@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"encoding/base64"
 	"net/url"
 	"sort"
 	"strconv"
@@ -19,6 +20,27 @@ import (
 	"github.com/silentmurdock/wrserver/providers/yts"
 )
 
+func GetSourceArgs(source string) (string, []string) {
+	split := strings.Split(source, ":")
+	sourceName := strings.ToLower(split[0])
+	var decodedArgs []string
+
+	for i := 1; i < len(split); i++ {
+		if split[i] == "" {
+			continue
+		}
+
+		decodedArg, err := base64.StdEncoding.DecodeString(split[i])
+
+		if err == nil {
+			strArg := string(decodedArg)
+			decodedArgs = append(decodedArgs, strArg)
+		}
+	}
+
+	return sourceName, decodedArgs
+}
+
 func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputMovieStruct {
 	outputMovieData := []out.OutputMovieStruct{}
 
@@ -27,8 +49,12 @@ func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputM
 	counter := 0
 	if imdbid != "" {
 		for _, source := range sources {
-			switch strings.ToLower(source) {
+			sourceName, sourceArgs := GetSourceArgs(source)
+			switch sourceName {
 			case "jackett":
+				if len(sourceArgs) == 2 {
+					jackett.SetJackettAddressAndKey(sourceArgs[0], sourceArgs[1])
+				}
 				go jackett.GetMovieMagnetByImdb(imdbid, ch)
 				counter++
 			case "pt":
@@ -54,8 +80,12 @@ func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputM
 		params, err := url.ParseQuery(query)
 		if err == nil {
 			for _, source := range sources {
-				switch strings.ToLower(source) {
+				sourceName, sourceArgs := GetSourceArgs(source)
+				switch sourceName {
 				case "jackett":
+					if len(sourceArgs) == 2 {
+						jackett.SetJackettAddressAndKey(sourceArgs[0], sourceArgs[1])
+					}
 					go jackett.GetMovieMagnetByQuery(params, ch)
 					counter++
 				case "1337x":
@@ -108,8 +138,12 @@ func GetShowMagnet(imdbid string, query string, season string, episode string, s
 	counter := 0
 	if imdbid != "" {
 		for _, source := range sources {
-			switch strings.ToLower(source) {
+			sourceName, sourceArgs := GetSourceArgs(source)
+			switch sourceName {
 			case "jackett":
+				if len(sourceArgs) == 2 {
+					jackett.SetJackettAddressAndKey(sourceArgs[0], sourceArgs[1])
+				}
 				go jackett.GetShowMagnetByImdb(imdbid, season, episode, ch)
 				counter++
 			case "pt":
@@ -132,8 +166,12 @@ func GetShowMagnet(imdbid string, query string, season string, episode string, s
 		params, err := url.ParseQuery(query)
 		if err == nil {
 			for _, source := range sources {
-				switch strings.ToLower(source) {
+				sourceName, sourceArgs := GetSourceArgs(source)
+				switch sourceName {
 				case "jackett":
+					if len(sourceArgs) == 2 {
+						jackett.SetJackettAddressAndKey(sourceArgs[0], sourceArgs[1])
+					}
 					go jackett.GetShowMagnetByQuery(params, season, episode, ch)
 					counter++
 				case "1337x":
