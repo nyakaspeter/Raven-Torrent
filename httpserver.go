@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -255,6 +256,31 @@ func handleAPI(cors bool) http.Handler {
 			http.Error(w, noMediaRenderersFound(), http.StatusNotFound)
 			log.Println("No media renderers found.")
 		}
+	})
+
+	routerAPI.HandleFunc(urlAPI+"startplayer/{base64path}/{base64args}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		var err error
+
+		path, err := base64.StdEncoding.DecodeString(vars["base64path"])
+		args, err := base64.StdEncoding.DecodeString(vars["base64args"])
+
+		splitArgs := strings.Split(string(args), ",")
+
+		if err != nil {
+			http.Error(w, playerFailed(), http.StatusNotFound)
+			return
+		}
+
+		cmd := exec.Command(string(path), splitArgs...)
+		err = cmd.Run()
+
+		if err != nil {
+			http.Error(w, playerFailed(), http.StatusNotFound)
+			return
+		}
+
+		io.WriteString(w, "{\"success\": true}")
 	})
 
 	routerAPI.HandleFunc(urlAPI+"cast/{base64location}/{base64query}", func(w http.ResponseWriter, r *http.Request) {

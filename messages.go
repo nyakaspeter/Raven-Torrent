@@ -459,3 +459,14 @@ func castingFailed() string {
 
 	return string(messageString)
 }
+
+func playerFailed() string {
+	message := messageResponse{
+		Success: false,
+		Message: "Failed to open media player.",
+	}
+
+	messageString, _ := json.Marshal(message)
+
+	return string(messageString)
+}

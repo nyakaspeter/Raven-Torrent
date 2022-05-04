@@ -20,27 +20,6 @@ import (
 	"github.com/silentmurdock/wrserver/providers/yts"
 )
 
-func GetSourceArgs(source string) (string, []string) {
-	split := strings.Split(source, ":")
-	sourceName := strings.ToLower(split[0])
-	var decodedArgs []string
-
-	for i := 1; i < len(split); i++ {
-		if split[i] == "" {
-			continue
-		}
-
-		decodedArg, err := base64.StdEncoding.DecodeString(split[i])
-
-		if err == nil {
-			strArg := string(decodedArg)
-			decodedArgs = append(decodedArgs, strArg)
-		}
-	}
-
-	return sourceName, decodedArgs
-}
-
 func GetMovieMagnet(imdbid string, query string, sources []string) []out.OutputMovieStruct {
 	outputMovieData := []out.OutputMovieStruct{}
 
@@ -214,6 +193,27 @@ func GetShowMagnet(imdbid string, query string, season string, episode string, s
 	})
 
 	return outputShowData
+}
+
+func GetSourceArgs(source string) (string, []string) {
+	split := strings.Split(source, ":")
+	sourceName := strings.ToLower(split[0])
+	var decodedArgs []string
+
+	for i := 1; i < len(split); i++ {
+		if split[i] == "" {
+			continue
+		}
+
+		decodedArg, err := base64.StdEncoding.DecodeString(split[i])
+
+		if err == nil {
+			strArg := string(decodedArg)
+			decodedArgs = append(decodedArgs, strArg)
+		}
+	}
+
+	return sourceName, decodedArgs
 }
 
 func SetTMDBKey(tmdbKey string) {
