@@ -1,0 +1,1 @@
+tar -a -c -f ..\bin\wrserver-%VERSION%-%PLATFORM%.zip -C ..\bin\%PLATFORM% wrserver*

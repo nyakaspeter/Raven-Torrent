@@ -6,34 +6,34 @@
 
 ### Server and Client related
 
-- [Get server information](documents/api/about.md)
-- [Stop server](documents/api/stop.md)
-- [Restart torrent client](documents/api/restart.md)
+- [Get server information](docs/api/about.md)
+- [Stop server](docs/api/stop.md)
+- [Restart torrent client](docs/api/restart.md)
 
 ### Torrent related
 
-- [Add torrent by magnet link](documents/api/add.md)
-- [Delete torrent by hash](documents/api/delete.md)
-- [Delete all running torrents](documents/api/deleteall.md)
-- [Get all running torrents](documents/api/torrents.md)
-- [Get running torrent statistics by hash](documents/api/stats.md)
-- [Stream or download the selected file](documents/api/get.md)
+- [Add torrent by magnet link](docs/api/add.md)
+- [Delete torrent by hash](docs/api/delete.md)
+- [Delete all running torrents](docs/api/deleteall.md)
+- [Get all running torrents](docs/api/torrents.md)
+- [Get running torrent statistics by hash](docs/api/stats.md)
+- [Stream or download the selected file](docs/api/get.md)
 
 ### Movie or TV Show related
 
-- [Discover movies or tv shows](documents/api/tmdbdiscover.md)
-- [Search movies or tv shows by query text](documents/api/tmdbsearch.md)
-- [Get more info about movie or tv show by TMDB id](documents/api/tmdbinfo.md)
-- [Get tv show episodes by IMDB id or TVDB id or both](documents/api/tvmazeepisodes.md)
-- [Get movie torrents by IMDB id or query text or both](documents/api/getmoviemagnet.md)
-- [Get tv show torrents by IMDB id or query text or both](documents/api/getshowmagnet.md)
+- [Discover movies or tv shows](docs/api/tmdbdiscover.md)
+- [Search movies or tv shows by query text](docs/api/tmdbsearch.md)
+- [Get more info about movie or tv show by TMDB id](docs/api/tmdbinfo.md)
+- [Get tv show episodes by IMDB id or TVDB id or both](docs/api/tvmazeepisodes.md)
+- [Get movie torrents by IMDB id or query text or both](docs/api/getmoviemagnet.md)
+- [Get tv show torrents by IMDB id or query text or both](docs/api/getshowmagnet.md)
 
 ### Subtitle related
 
-- [Search subtitles by IMDB id](documents/api/subtitlesbyimdb.md)
-- [Search subtitles by query text](documents/api/subtitlesbytext.md)
-- [Search subtitles by inner file hash](documents/api/subtitlesbyhash.md)
-- [Download subtitle file](documents/api/getsubtitle.md)
+- [Search subtitles by IMDB id](docs/api/subtitlesbyimdb.md)
+- [Search subtitles by query text](docs/api/subtitlesbytext.md)
+- [Search subtitles by inner file hash](docs/api/subtitlesbyhash.md)
+- [Download subtitle file](docs/api/getsubtitle.md)
 
 ## Command-Line Arguments
 

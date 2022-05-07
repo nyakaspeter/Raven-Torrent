@@ -4,6 +4,6 @@
 *.dll
 *.so
 *.dylib
-wrserver*
 *__debug*
 .vs
+bin
