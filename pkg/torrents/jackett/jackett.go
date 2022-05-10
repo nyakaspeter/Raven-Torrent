@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	. "github.com/silentmurdock/wrserver/pkg/torrents/output"
+	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
 )
 
 type apiResponse struct {
@@ -31,8 +31,9 @@ type apiResponse struct {
 	} `json:"Results"`
 }
 
-var jackettAddress = ""
-var jackettKey = ""
+var JackettAddress = ""
+var JackettKey = ""
+
 var movieCategories = [...]string{"2000", "2030", "2040"}
 var showCategories = [...]string{"5000", "5030", "5040"}
 
@@ -40,7 +41,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	outputMovieData := []MovieTorrent{}
 
 	for _, category := range movieCategories {
-		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + imdb), nil)
+		req, err := http.NewRequest("GET", (JackettAddress + "/api/v2.0/indexers/all/results?apikey=" + JackettKey + "&category=" + category + "&query=" + imdb), nil)
 		if err != nil {
 			break
 		}
@@ -113,7 +114,7 @@ func GetMovieTorrentsByQuery(params map[string][]string, ch chan<- []MovieTorren
 	outputMovieData := []MovieTorrent{}
 
 	for _, category := range movieCategories {
-		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + query), nil)
+		req, err := http.NewRequest("GET", (JackettAddress + "/api/v2.0/indexers/all/results?apikey=" + JackettKey + "&category=" + category + "&query=" + query), nil)
 		if err != nil {
 			break
 		}
@@ -169,7 +170,7 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 	outputShowData := []ShowTorrent{}
 
 	for _, category := range showCategories {
-		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + imdb), nil)
+		req, err := http.NewRequest("GET", (JackettAddress + "/api/v2.0/indexers/all/results?apikey=" + JackettKey + "&category=" + category + "&query=" + imdb), nil)
 		if err != nil {
 			break
 		}
@@ -258,7 +259,7 @@ func GetShowTorrentsByQuery(params map[string][]string, season string, episode s
 	outputShowData := []ShowTorrent{}
 
 	for _, category := range showCategories {
-		req, err := http.NewRequest("GET", (jackettAddress + "/api/v2.0/indexers/all/results?apikey=" + jackettKey + "&category=" + category + "&query=" + query), nil)
+		req, err := http.NewRequest("GET", (JackettAddress + "/api/v2.0/indexers/all/results?apikey=" + JackettKey + "&category=" + category + "&query=" + query), nil)
 		if err != nil {
 			break
 		}
@@ -312,9 +313,4 @@ func GetShowTorrentsByQuery(params map[string][]string, season string, episode s
 
 	ch <- outputShowData
 	return
-}
-
-func SetJackettAddressAndKey(address string, key string) {
-	jackettAddress = address
-	jackettKey = key
 }

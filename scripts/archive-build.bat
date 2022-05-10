@@ -1,1 +1,1 @@
-tar -a -c -f ..\bin\wrserver-%VERSION%-%PLATFORM%.zip -C ..\bin\%PLATFORM% wrserver*
+tar -a -c -f ..\bin\raven-%VERSION%-%PLATFORM%.zip -C ..\bin\%PLATFORM% raven*

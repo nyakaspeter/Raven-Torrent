@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/anacrolix/torrent/metainfo"
-	. "github.com/silentmurdock/wrserver/pkg/torrents/output"
+	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
 )
 
 type apiMovieResponse struct {
@@ -17,35 +17,35 @@ type apiMovieResponse struct {
 		Lang struct {
 			Quality2160p struct {
 				Url      string `json:"url"`
-				Size     int64  `json:"size"`
+				Size     string `json:"size"`
 				Provider string `json:"provider"`
 				Seed     int64  `json:"seed"`
 				Peer     int64  `json:"peer"`
 			} `json:"2160p"`
 			Quality1080p struct {
 				Url      string `json:"url"`
-				Size     int64  `json:"size"`
+				Size     string `json:"size"`
 				Provider string `json:"provider"`
 				Seed     int64  `json:"seed"`
 				Peer     int64  `json:"peer"`
 			} `json:"1080p"`
 			Quality720p struct {
 				Url      string `json:"url"`
-				Size     int64  `json:"size"`
+				Size     string `json:"size"`
 				Provider string `json:"provider"`
 				Seed     int64  `json:"seed"`
 				Peer     int64  `json:"peer"`
 			} `json:"720p"`
 			Quality480p struct {
 				Url      string `json:"url"`
-				Size     int64  `json:"size"`
+				Size     string `json:"size"`
 				Provider string `json:"provider"`
 				Seed     int64  `json:"seed"`
 				Peer     int64  `json:"peer"`
 			} `json:"480p"`
 			Quality360p struct {
 				Url      string `json:"url"`
-				Size     int64  `json:"size"`
+				Size     string `json:"size"`
 				Provider string `json:"provider"`
 				Seed     int64  `json:"seed"`
 				Peer     int64  `json:"peer"`
@@ -95,8 +95,10 @@ type apiShowResponse struct {
 	Title string `json:"title"`
 }
 
+const apiUrl = "https://popcorn-time.ga"
+
 func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
-	req, err := http.NewRequest("GET", "https://tv-v2.api-fetch.sh/movie/"+imdb, nil)
+	req, err := http.NewRequest("GET", apiUrl+"/movie/"+imdb, nil)
 	if err != nil {
 		ch <- []MovieTorrent{}
 		return
@@ -136,7 +138,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 			temp := MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "360p",
-				Size:     strconv.FormatInt(response.Torrents.Lang.Quality360p.Size, 10),
+				Size:     response.Torrents.Lang.Quality360p.Size,
 				Provider: response.Torrents.Lang.Quality360p.Provider,
 				Lang:     "en",
 				Title:    response.Title,
@@ -154,7 +156,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 			temp := MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "480p",
-				Size:     strconv.FormatInt(response.Torrents.Lang.Quality480p.Size, 10),
+				Size:     response.Torrents.Lang.Quality480p.Size,
 				Provider: response.Torrents.Lang.Quality480p.Provider,
 				Lang:     "en",
 				Title:    response.Title,
@@ -172,7 +174,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 			temp := MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "720p",
-				Size:     strconv.FormatInt(response.Torrents.Lang.Quality720p.Size, 10),
+				Size:     response.Torrents.Lang.Quality720p.Size,
 				Provider: response.Torrents.Lang.Quality720p.Provider,
 				Lang:     "en",
 				Title:    response.Title,
@@ -190,7 +192,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 			temp := MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "1080p",
-				Size:     strconv.FormatInt(response.Torrents.Lang.Quality1080p.Size, 10),
+				Size:     response.Torrents.Lang.Quality1080p.Size,
 				Provider: response.Torrents.Lang.Quality1080p.Provider,
 				Lang:     "en",
 				Title:    response.Title,
@@ -208,7 +210,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 			temp := MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "2160p",
-				Size:     strconv.FormatInt(response.Torrents.Lang.Quality2160p.Size, 10),
+				Size:     response.Torrents.Lang.Quality2160p.Size,
 				Provider: response.Torrents.Lang.Quality2160p.Provider,
 				Lang:     "en",
 				Title:    response.Title,
@@ -224,7 +226,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 }
 
 func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []ShowTorrent) {
-	req, err := http.NewRequest("GET", "https://tv-v2.api-fetch.sh/show/"+imdb, nil)
+	req, err := http.NewRequest("GET", apiUrl+"/show/"+imdb, nil)
 	if err != nil {
 		ch <- []ShowTorrent{}
 		return

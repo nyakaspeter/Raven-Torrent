@@ -7,15 +7,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/silentmurdock/wrserver/pkg/torrents/eztv"
-	"github.com/silentmurdock/wrserver/pkg/torrents/itorrent"
-	"github.com/silentmurdock/wrserver/pkg/torrents/jackett"
-	. "github.com/silentmurdock/wrserver/pkg/torrents/output"
-	"github.com/silentmurdock/wrserver/pkg/torrents/pt"
-	"github.com/silentmurdock/wrserver/pkg/torrents/pto"
-	"github.com/silentmurdock/wrserver/pkg/torrents/rarbg"
-	"github.com/silentmurdock/wrserver/pkg/torrents/x1337x"
-	"github.com/silentmurdock/wrserver/pkg/torrents/yts"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/eztv"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/itorrent"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/jackett"
+	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/pt"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/rarbg"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/x1337x"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/yts"
 )
 
 func GetMovieTorrents(imdbid string, query string, sources []string) []MovieTorrent {
@@ -30,7 +29,8 @@ func GetMovieTorrents(imdbid string, query string, sources []string) []MovieTorr
 			switch sourceName {
 			case "jackett":
 				if len(sourceArgs) == 2 {
-					jackett.SetJackettAddressAndKey(sourceArgs[0], sourceArgs[1])
+					jackett.JackettAddress = sourceArgs[0]
+					jackett.JackettKey = sourceArgs[1]
 				}
 				go jackett.GetMovieTorrentsByImdbId(imdbid, ch)
 				counter++
@@ -42,9 +42,6 @@ func GetMovieTorrents(imdbid string, query string, sources []string) []MovieTorr
 				counter++
 			case "rarbg":
 				go rarbg.GetMovieTorrentsByImdbId(imdbid, ch)
-				counter++
-			case "pto":
-				go pto.GetMovieTorrentsByImdbId(imdbid, ch)
 				counter++
 			case "itorrent":
 				go itorrent.GetMovieTorrentsByImdbId(imdbid, ch)
@@ -61,7 +58,8 @@ func GetMovieTorrents(imdbid string, query string, sources []string) []MovieTorr
 				switch sourceName {
 				case "jackett":
 					if len(sourceArgs) == 2 {
-						jackett.SetJackettAddressAndKey(sourceArgs[0], sourceArgs[1])
+						jackett.JackettAddress = sourceArgs[0]
+						jackett.JackettKey = sourceArgs[1]
 					}
 					go jackett.GetMovieTorrentsByQuery(params, ch)
 					counter++
@@ -119,7 +117,8 @@ func GetShowTorrents(imdbid string, query string, season string, episode string,
 			switch sourceName {
 			case "jackett":
 				if len(sourceArgs) == 2 {
-					jackett.SetJackettAddressAndKey(sourceArgs[0], sourceArgs[1])
+					jackett.JackettAddress = sourceArgs[0]
+					jackett.JackettKey = sourceArgs[1]
 				}
 				go jackett.GetShowTorrentsByImdbId(imdbid, season, episode, ch)
 				counter++
@@ -147,7 +146,8 @@ func GetShowTorrents(imdbid string, query string, season string, episode string,
 				switch sourceName {
 				case "jackett":
 					if len(sourceArgs) == 2 {
-						jackett.SetJackettAddressAndKey(sourceArgs[0], sourceArgs[1])
+						jackett.JackettAddress = sourceArgs[0]
+						jackett.JackettKey = sourceArgs[1]
 					}
 					go jackett.GetShowTorrentsByQuery(params, season, episode, ch)
 					counter++

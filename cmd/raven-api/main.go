@@ -4,14 +4,13 @@ import (
 	"flag"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
 
-	"github.com/anacrolix/torrent"
-	"github.com/silentmurdock/wrserver/pkg/metadata/tmdb"
-	"github.com/silentmurdock/wrserver/pkg/torrents/jackett"
+	"github.com/nyakaspeter/raven-torrent/internal/server"
+	"github.com/nyakaspeter/raven-torrent/pkg/metadata/tmdb"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/jackett"
 )
 
 type serviceSettings struct {
@@ -35,28 +34,21 @@ type serviceSettings struct {
 }
 
 var procQuit chan bool
-var procError chan string
 var procRestart chan []int64
-var torrentClient *torrent.Client
 var originalArgs []string
+var settings serviceSettings
 
 func main() {
-	procQuit = make(chan bool)
-	procError = make(chan string)
-	procRestart = make(chan []int64, 2)
-
-	var settings serviceSettings
-
 	settings.Host = flag.String("host", "", "listening server ip")
 	settings.Port = flag.Int("port", 9000, "listening port")
 	settings.DlnaPort = flag.Int("dlnaport", 3500, "DLNA server port")
-	settings.DownloadDir = flag.String("dir", "", "specify the directory where files will be downloaded to if storagetype is set to \"piecefile\" or \"file\"")
+	settings.DownloadDir = flag.String("dir", "", "specify the directory where files will be downloaded to if storagetype is set to \"file\"")
 	settings.DownloadRate = flag.Int("downrate", 0, "download speed rate in Kbps")
 	settings.UploadRate = flag.Int("uprate", 0, "upload speed rate in Kbps")
 	settings.MaxConnections = flag.Int("maxconn", 50, "max connections per torrent")
 	settings.NoDHT = flag.Bool("nodht", false, "disable dht")
 	settings.EnableLog = flag.Bool("log", false, "enable log messages")
-	settings.StorageType = flag.String("storagetype", "memory", "select storage type (must be set to \"memory\" or \"piecefile\" or \"file\")")
+	settings.StorageType = flag.String("storagetype", "memory", "select storage type (must be set to \"memory\" or \"file\")")
 	settings.Background = flag.Bool("background", false, "run the server in the background")
 	settings.CORS = flag.Bool("cors", true, "enable CORS")
 	settings.MemorySize = flag.Int64("memorysize", 128, "specify the storage memory size in MB if storagetype is set to \"memory\" (minimum 64)") // 64MB is optimal for TVs
@@ -65,18 +57,19 @@ func main() {
 	settings.JackettKey = flag.String("jackettkey", "", "set external Jackett API key")
 	settings.OpenSubtitlesUserAgent = flag.String("osuseragent", "White Raven v0.3", "set external OpenSubtitles user agent")
 
+	procQuit = make(chan bool)
+	procRestart = make(chan []int64, 2)
+	handleSignals()
+
+	flag.Parse()
+	log.SetFlags(0)
+
 	// Set Opensubtitles server address to http because https not working on Samsung Smart TV
 	os.Setenv("OSDB_SERVER", "http://api.opensubtitles.org/xml-rpc")
 
-	flag.Parse()
-
-	handleSignals()
-
-	log.SetFlags(0)
-
 	// Check storage type
-	if *settings.StorageType != "memory" && *settings.StorageType != "piecefile" && *settings.StorageType != "file" {
-		log.Printf("missing or invalid -storagetype value: \"%s\" (must be set to \"memory\" or \"piecefile\" or \"file\")\nUsage of %s:\n", *settings.StorageType, os.Args[0])
+	if *settings.StorageType != "memory" && *settings.StorageType != "file" {
+		log.Printf("missing or invalid -storagetype value: \"%s\" (must be set to \"memory\" or \"file\")\nUsage of %s:\n", *settings.StorageType, os.Args[0])
 		flag.PrintDefaults()
 		os.Exit(2)
 	}
@@ -88,36 +81,37 @@ func main() {
 		os.Exit(2)
 	}
 
-	// Check dir flag settings if storage type is piecefile or file
-	if *settings.StorageType == "piecefile" || *settings.StorageType == "file" {
+	// Check dir flag settings if storage type is file
+	if *settings.StorageType == "file" {
 		if *settings.DownloadDir == "" {
-			log.Printf("empty -dir value (must be set if selected -storagetype is \"piecefile\" or \"file\")\nUsage of %s:\n", os.Args[0])
+			log.Printf("empty -dir value (must be set if selected -storagetype is \"file\")\nUsage of %s:\n", os.Args[0])
 			flag.PrintDefaults()
 			os.Exit(2)
 		}
 	}
 
 	// Set TMDB API key
-	tmdb.SetApiKey(*settings.TMDBKey)
+	tmdb.TmdbKey = *settings.TMDBKey
 
 	// Configure Jackett API
-	jackett.SetJackettAddressAndKey(*settings.JackettAddress, *settings.JackettKey)
+	jackett.JackettAddress = *settings.JackettAddress
+	jackett.JackettKey = *settings.JackettKey
 
 	// Set OpenSubtitles user agent string
-	openSubtitlesUserAgent = *settings.OpenSubtitlesUserAgent
+	server.OpenSubtitlesUserAgent = *settings.OpenSubtitlesUserAgent
 
 	// Set DLNA server port
-	dlnaServerPort = *settings.DlnaPort
+	server.DlnaServerPort = *settings.DlnaPort
 
 	// Disable or enable the log in production mode
-	if *settings.EnableLog == false {
+	if !*settings.EnableLog {
 		log.SetOutput(ioutil.Discard)
 		defer log.SetOutput(os.Stderr)
 	}
 
 	originalArgs = os.Args[1:]
 	// Check if need to run in the background
-	if *settings.Background == true {
+	if *settings.Background {
 		args := originalArgs
 		// Disable the background argument to false before the start
 		for i := 0; i < len(args); i++ {
@@ -139,10 +133,60 @@ func main() {
 		os.Exit(0)
 	}
 
-	torrentClient = startTorrentClient(settings)
-	srv := startHTTPServer(*settings.Host, *settings.Port, *settings.CORS)
+	startTorrentClient()
+	startHttpServer()
+	waitForSignals()
+}
 
-	waitingForSignals(settings, []int64{int64(*settings.DownloadRate), int64(*settings.UploadRate)}, srv)
+func startTorrentClient() {
+	var err error = nil
+
+	_, err = server.StartTorrentClient(
+		*settings.StorageType,
+		*settings.MemorySize,
+		*settings.DownloadDir,
+		*settings.DownloadRate,
+		*settings.UploadRate,
+		*settings.MaxConnections,
+		*settings.NoDHT,
+		*settings.EnableLog,
+	)
+
+	if err != nil {
+		log.Println("Error:", err.Error())
+		procQuit <- true
+	}
+}
+
+func startHttpServer() {
+	server.StartHttpServer(
+		*settings.Host,
+		*settings.Port,
+		*settings.CORS,
+		procQuit,
+		procRestart,
+	)
+}
+
+func waitForSignals() {
+	select {
+
+	case <-procQuit:
+		quit()
+
+	case receivedArgs := <-procRestart:
+		if receivedArgs[0] != -1 && receivedArgs[1] != -1 {
+			*settings.DownloadRate = int(receivedArgs[0])
+			*settings.UploadRate = int(receivedArgs[1])
+			log.Println("Restarting torrent client with new settings.")
+		} else {
+			log.Println("Restarting torrent client because torrent deletion.")
+		}
+
+		server.StopTorrentClient()
+		startTorrentClient()
+		waitForSignals()
+	}
 }
 
 func handleSignals() {
@@ -157,52 +201,9 @@ func handleSignals() {
 	}()
 }
 
-func waitingForSignals(saveSettings serviceSettings, receivedArgs []int64, srv *http.Server) {
-	if receivedArgs[0] != -1 && receivedArgs[1] != -1 {
-		*saveSettings.DownloadRate = int(receivedArgs[0])
-		*saveSettings.UploadRate = int(receivedArgs[1])
-	}
-
-	select {
-	case err := <-procError:
-		log.Println("Error:", err)
-		quit(srv)
-
-	case <-procQuit:
-		quit(srv)
-
-	case receivedArgs := <-procRestart:
-		if receivedArgs[0] != -1 && receivedArgs[1] != -1 {
-			log.Println("Restarting torrent client with new settings.")
-		} else {
-			log.Println("Restarting torrent client because torrent deletion.")
-		}
-
-		torrentClient.Close()
-
-		select {
-		case err := <-procError:
-			log.Println("Error:", err)
-			quit(srv)
-
-		case <-procQuit:
-			quit(srv)
-
-		case <-torrentClient.Closed():
-			torrentClient = nil
-			torrentClient = startTorrentClient(saveSettings)
-
-			waitingForSignals(saveSettings, receivedArgs, srv)
-		}
-	}
-}
-
-func quit(srv *http.Server) {
+func quit() {
 	log.Println("Quitting")
 
-	srv.Close()
-
-	if torrentClient != nil {
-		torrentClient.Close()
-	}
+	server.StopHttpServer()
+	server.StopTorrentClient()
 }

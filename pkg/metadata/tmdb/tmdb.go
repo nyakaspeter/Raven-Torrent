@@ -13,26 +13,22 @@ type tmdbResponse struct {
 	Id           int `json:"id"`
 }
 
-var TMDBKey string = ""
-
-func SetApiKey(tmdbKey string) {
-	TMDBKey = tmdbKey
-}
+var TmdbKey string = ""
 
 func Discover(qtype string, genretype string, sort string, date string, lang string, cpage string) string {
 	requesturl := ""
 
 	if qtype == "movie" {
 		if genretype == "all" {
-			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TMDBKey + "&sort_by=" + sort + "&release_date.lte=" + date + "&with_original_language=en&region=US&with_release_type=5&language=" + lang + "&page=" + cpage
+			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TmdbKey + "&sort_by=" + sort + "&release_date.lte=" + date + "&with_original_language=en&region=US&with_release_type=5&language=" + lang + "&page=" + cpage
 		} else {
-			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TMDBKey + "&sort_by=" + sort + "&release_date.lte=" + date + "&with_original_language=en&region=US&with_release_type=5&with_genres=" + genretype + "&language=" + lang + "&page=" + cpage
+			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TmdbKey + "&sort_by=" + sort + "&release_date.lte=" + date + "&with_original_language=en&region=US&with_release_type=5&with_genres=" + genretype + "&language=" + lang + "&page=" + cpage
 		}
 	} else {
 		if genretype == "all" {
-			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TMDBKey + "&sort_by=" + sort + "&air_date.lte=" + date + "&with_original_language=en&language=" + lang + "&page=" + cpage
+			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TmdbKey + "&sort_by=" + sort + "&air_date.lte=" + date + "&with_original_language=en&language=" + lang + "&page=" + cpage
 		} else {
-			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TMDBKey + "&sort_by=" + sort + "&air_date.lte=" + date + "&with_original_language=en&with_genres=" + genretype + "&language=" + lang + "&page=" + cpage
+			requesturl = "https://api.themoviedb.org/3/discover/" + qtype + "?api_key=" + TmdbKey + "&sort_by=" + sort + "&air_date.lte=" + date + "&with_original_language=en&with_genres=" + genretype + "&language=" + lang + "&page=" + cpage
 		}
 	}
 
@@ -68,7 +64,7 @@ func Discover(qtype string, genretype string, sort string, date string, lang str
 }
 
 func Search(qtype string, lang string, cpage string, typedtext string) string {
-	req, err := http.NewRequest("GET", "https://api.themoviedb.org/3/search/"+qtype+"?api_key="+TMDBKey+"&language="+lang+"&page="+cpage+"&query="+typedtext, nil)
+	req, err := http.NewRequest("GET", "https://api.themoviedb.org/3/search/"+qtype+"?api_key="+TmdbKey+"&language="+lang+"&page="+cpage+"&query="+typedtext, nil)
 	if err != nil {
 		return ""
 	}
@@ -100,9 +96,9 @@ func Search(qtype string, lang string, cpage string, typedtext string) string {
 }
 
 func GetInfo(qtype string, tmdbid string, lang string) string {
-	requesturl := "https://api.themoviedb.org/3/" + qtype + "/" + tmdbid + "?api_key=" + TMDBKey + "&language=" + lang
+	requesturl := "https://api.themoviedb.org/3/" + qtype + "/" + tmdbid + "?api_key=" + TmdbKey + "&language=" + lang
 	if qtype == "tv" {
-		requesturl = "https://api.themoviedb.org/3/" + qtype + "/" + tmdbid + "?api_key=" + TMDBKey + "&append_to_response=external_ids&language=" + lang
+		requesturl = "https://api.themoviedb.org/3/" + qtype + "/" + tmdbid + "?api_key=" + TmdbKey + "&append_to_response=external_ids&language=" + lang
 	}
 
 	req, err := http.NewRequest("GET", requesturl, nil)

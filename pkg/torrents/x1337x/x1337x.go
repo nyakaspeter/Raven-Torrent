@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	. "github.com/silentmurdock/wrserver/pkg/torrents/output"
+	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
 )
 
 func GetMovieTorrentsByQuery(params map[string][]string, ch chan<- []MovieTorrent) {

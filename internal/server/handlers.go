@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"archive/zip"
@@ -28,28 +28,37 @@ import (
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
 
-	"github.com/silentmurdock/wrserver/pkg/dlnacast"
-	"github.com/silentmurdock/wrserver/pkg/metadata/tmdb"
-	"github.com/silentmurdock/wrserver/pkg/metadata/tvmaze"
-	"github.com/silentmurdock/wrserver/pkg/torrents"
+	"github.com/nyakaspeter/raven-torrent/pkg/dlnacast"
+	"github.com/nyakaspeter/raven-torrent/pkg/metadata/tmdb"
+	"github.com/nyakaspeter/raven-torrent/pkg/metadata/tvmaze"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents"
 )
 
+const version = "0.6.0"
 const apiPrefix = "/api/"
+
+var DlnaServerPort int
+var OpenSubtitlesUserAgent string
+
+var procQuit chan bool
+var procRestart chan []int64
 
 var serverHost string
 var serverPort int
-var dlnaServerPort int
 var dlnaServer *dlnacast.HTTPserver = nil
 var dlnaTvPayload *dlnacast.TVPayload = nil
-var openSubtitlesUserAgent string
+var httpServer *http.Server
 var webSocket *websocket.Conn
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 }
 
-func startHTTPServer(host string, port int, cors bool) *http.Server {
-	newsrv := &http.Server{
+func StartHttpServer(host string, port int, cors bool, quit chan bool, restart chan []int64) *http.Server {
+	procQuit = quit
+	procRestart = restart
+
+	httpServer = &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", host, port),
 		ReadTimeout:  38 * time.Second,
 		WriteTimeout: 38 * time.Second,
@@ -64,13 +73,13 @@ func startHTTPServer(host string, port int, cors bool) *http.Server {
 	serverHost = localIP
 	serverPort = port
 
-	address := fmt.Sprintf("http://%s:%d", localIP, port)
+	address := fmt.Sprintf("http://%s:%d", serverHost, serverPort)
 
 	// Must appear
-	fmt.Printf("White Raven Server Version %s Started On Address: %s\n", version, address)
+	fmt.Printf("Raven Torrent started on address: %s\n", address)
 
 	go func() {
-		if err := newsrv.ListenAndServe(); err != nil {
+		if err := httpServer.ListenAndServe(); err != nil {
 			// cannot panic, because this probably is an intentional close
 			if err == http.ErrServerClosed {
 				fmt.Printf("HTTP Server Closed\n")
@@ -82,8 +91,11 @@ func startHTTPServer(host string, port int, cors bool) *http.Server {
 		}
 	}()
 
-	// returning reference so caller can call Shutdown()
-	return newsrv
+	return httpServer
+}
+
+func StopHttpServer() {
+	httpServer.Close()
 }
 
 func handleAPI(cors bool) http.Handler {
@@ -212,46 +224,50 @@ func handleAPI(cors bool) http.Handler {
 
 	router.HandleFunc(apiPrefix+"startplayer/{base64path}/{base64args}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		var err error
 
 		path, err := base64.StdEncoding.DecodeString(vars["base64path"])
+		if err != nil {
+			http.Error(w, failedToOpenMediaPlayer(), http.StatusNotFound)
+			return
+		}
+
 		args, err := base64.StdEncoding.DecodeString(vars["base64args"])
+		if err != nil {
+			http.Error(w, failedToOpenMediaPlayer(), http.StatusNotFound)
+			return
+		}
 
 		splitArgs := strings.Split(string(args), ",")
 
-		if err != nil {
-			http.Error(w, failedToOpenMediaPlayer(), http.StatusNotFound)
-			return
-		}
-
 		cmd := exec.Command(string(path), splitArgs...)
 		err = cmd.Run()
-
 		if err != nil {
 			http.Error(w, failedToOpenMediaPlayer(), http.StatusNotFound)
 			return
 		}
 
-		io.WriteString(w, "{\"success\": true}")
+		io.WriteString(w, successMessage())
 	})
 
 	router.HandleFunc(apiPrefix+"cast/{base64location}/{base64query}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		var err error
 		var videoURL = ""
 		var subtitlesURL = ""
 		var videoTitle = "video"
 
 		location, err := base64.StdEncoding.DecodeString(vars["base64location"])
-		query, err := base64.StdEncoding.DecodeString(vars["base64query"])
+		if err != nil {
+			http.Error(w, failedCastingToDevice(), http.StatusNotFound)
+			return
+		}
 
+		query, err := base64.StdEncoding.DecodeString(vars["base64query"])
 		if err != nil {
 			http.Error(w, failedCastingToDevice(), http.StatusNotFound)
 			return
 		}
 
 		params, err := url.ParseQuery(string(query))
-
 		if err != nil {
 			http.Error(w, failedCastingToDevice(), http.StatusNotFound)
 			return
@@ -279,7 +295,7 @@ func handleAPI(cors bool) http.Handler {
 		videoURL = strings.Replace(videoURL, "localhost", serverHost, 1)
 		subtitlesURL = strings.Replace(subtitlesURL, "localhost", serverHost, 1)
 
-		whereToListen := fmt.Sprintf("%s:%d", serverHost, dlnaServerPort)
+		whereToListen := fmt.Sprintf("%s:%d", serverHost, DlnaServerPort)
 		callbackURL := fmt.Sprintf("http://%s/callback", whereToListen)
 
 		newPayload := &dlnacast.TVPayload{
@@ -316,7 +332,7 @@ func handleAPI(cors bool) http.Handler {
 			return
 		}
 
-		io.WriteString(w, "{\"success\": true}")
+		io.WriteString(w, successMessage())
 	})
 
 	router.HandleFunc(apiPrefix+"delete/{hash}", func(w http.ResponseWriter, r *http.Request) {
@@ -412,7 +428,7 @@ func handleAPI(cors bool) http.Handler {
 			return
 		}
 
-		c.UserAgent = openSubtitlesUserAgent
+		c.UserAgent = OpenSubtitlesUserAgent
 
 		// Anonymous Login with UserAgent string will set c.Token when successful
 		if err = c.LogIn("", "", ""); err != nil {
@@ -432,7 +448,16 @@ func handleAPI(cors bool) http.Handler {
 		log.Println("Search subtitle by imdbid...")
 
 		season, err := strconv.ParseInt(vars["season"], 10, 64)
+		if err != nil {
+			http.Error(w, noSubtitlesFound(), http.StatusNotFound)
+			return
+		}
+
 		episode, err := strconv.ParseInt(vars["episode"], 10, 64)
+		if err != nil {
+			http.Error(w, noSubtitlesFound(), http.StatusNotFound)
+			return
+		}
 
 		params := []interface{}{}
 		if season == 0 && episode == 0 {
@@ -482,7 +507,7 @@ func handleAPI(cors bool) http.Handler {
 			}
 		}
 
-		if found == false {
+		if !found {
 			http.Error(w, noSubtitlesFound(), http.StatusNotFound)
 			return
 		}
@@ -501,7 +526,7 @@ func handleAPI(cors bool) http.Handler {
 			return
 		}
 
-		c.UserAgent = openSubtitlesUserAgent
+		c.UserAgent = OpenSubtitlesUserAgent
 
 		// Anonymous Login with UserAgent string will set c.Token when successful
 		if err = c.LogIn("", "", ""); err != nil {
@@ -520,7 +545,16 @@ func handleAPI(cors bool) http.Handler {
 		log.Println("Search subtitle by text...")
 
 		season, err := strconv.ParseInt(vars["season"], 10, 64)
+		if err != nil {
+			http.Error(w, noSubtitlesFound(), http.StatusNotFound)
+			return
+		}
+
 		episode, err := strconv.ParseInt(vars["episode"], 10, 64)
+		if err != nil {
+			http.Error(w, noSubtitlesFound(), http.StatusNotFound)
+			return
+		}
 
 		params := []interface{}{}
 		if season == 0 && episode == 0 {
@@ -570,7 +604,7 @@ func handleAPI(cors bool) http.Handler {
 			}
 		}
 
-		if found == false {
+		if !found {
 			http.Error(w, noSubtitlesFound(), http.StatusNotFound)
 			return
 		}
@@ -608,7 +642,7 @@ func handleAPI(cors bool) http.Handler {
 					return
 				}
 
-				c.UserAgent = openSubtitlesUserAgent
+				c.UserAgent = OpenSubtitlesUserAgent
 
 				// Anonymous Login with UserAgent string will set c.Token when successful
 				if err = c.LogIn("", "", ""); err != nil {
@@ -655,7 +689,7 @@ func handleAPI(cors bool) http.Handler {
 					}
 				}
 
-				if found == false {
+				if !found {
 					http.Error(w, noSubtitlesFound(), http.StatusNotFound)
 					return
 				}
@@ -686,7 +720,7 @@ func handleAPI(cors bool) http.Handler {
 			}
 
 			for _, f := range zipContent.File {
-				if strings.HasSuffix(strings.ToLower(f.Name), ".srt") == true {
+				if strings.HasSuffix(strings.ToLower(f.Name), ".srt") {
 					fileHandler, err := f.Open()
 					if err != nil {
 						http.Error(w, failedToLoadSubtitle(), http.StatusNotFound)
@@ -950,7 +984,7 @@ func handleAPI(cors bool) http.Handler {
 	})
 
 	// Enable CORS for api urls if required
-	if cors == false {
+	if !cors {
 		return router
 	} else {
 		return handlers.CORS(handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}), handlers.AllowedMethods([]string{"GET", "POST", "PUT", "HEAD", "OPTIONS"}), handlers.AllowedOrigins([]string{"*"}))(router)
@@ -963,7 +997,7 @@ func fetchZip(zipurl string) (*zip.Reader, error) {
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", openSubtitlesUserAgent)
+	req.Header.Set("User-Agent", OpenSubtitlesUserAgent)
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}

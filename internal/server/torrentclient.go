@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"runtime"
 	"sort"
 	"strings"
 	"time"
@@ -20,9 +21,8 @@ import (
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/anacrolix/torrent/storage"
-	fat32storage "github.com/iamacarpet/go-torrent-storage-fat32"
+	"github.com/nyakaspeter/raven-torrent/pkg/memorystorage"
 	"github.com/oz/osdb"
-	"github.com/silentmurdock/wrserver/pkg/memorystorage"
 	"golang.org/x/time/rate"
 )
 
@@ -34,45 +34,51 @@ type torrentLeaf struct {
 	fileclients map[string]int // Count active connections
 }
 
-const version = "0.5.1"
 const resolveTimeout = time.Second * 35
 const megaByte = 1024 * 1024
 
+var torrentClient *torrent.Client
 var activeTorrents map[string]*torrentLeaf
-var gettingTorrent bool = false
+var receivedTorrent *metainfo.MetaInfo = nil
 var maxPieceLength int64 = 16
 
-func startTorrentClient(settings serviceSettings) *torrent.Client {
+func StartTorrentClient(
+	storageType string,
+	memorySize int64,
+	downloadDir string,
+	downloadRate int,
+	uploadRate int,
+	maxConnections int,
+	noDht bool,
+	enableLog bool,
+) (*torrent.Client, error) {
 	activeTorrents = make(map[string]*torrentLeaf)
 
 	cfg := torrent.NewDefaultClientConfig()
 
-	if *settings.StorageType == "memory" {
-		maxPieceLength = int64(math.Floor(float64(*settings.MemorySize) * 100 / 75 / 8))
-		memorystorage.SetMemorySize(*settings.MemorySize, maxPieceLength)
+	if storageType == "memory" {
+		maxPieceLength = int64(math.Floor(float64(memorySize) * 100 / 75 / 8))
+		memorystorage.SetMemorySize(memorySize, maxPieceLength)
 		cfg.DefaultStorage = memorystorage.NewMemoryStorage()
-	} else if *settings.StorageType == "piecefile" {
-		cfg.DefaultStorage = fat32storage.NewFat32Storage(*settings.DownloadDir)
-		cfg.DataDir = *settings.DownloadDir
-	} else if *settings.StorageType == "file" {
-		cfg.DefaultStorage = storage.NewFileByInfoHash(*settings.DownloadDir)
-		cfg.DataDir = *settings.DownloadDir
+	} else if storageType == "file" {
+		cfg.DefaultStorage = storage.NewFileByInfoHash(downloadDir)
+		cfg.DataDir = downloadDir
 	}
 
-	cfg.EstablishedConnsPerTorrent = *settings.MaxConnections
-	cfg.NoDHT = *settings.NoDHT
+	cfg.EstablishedConnsPerTorrent = maxConnections
+	cfg.NoDHT = noDht
 	cfg.DisableIPv6 = true
 	cfg.DisableUTP = true
 
 	// Discard or show the logs
-	if *settings.EnableLog == false {
+	if !enableLog {
 		cfg.Logger = alog.Discard
 	}
 	//cfg.Debug = true
 
 	// up/download speed rate in bytes per second from megabits per second
-	downrate := int((*settings.DownloadRate * 1024) / 8)
-	uprate := int((*settings.UploadRate * 1024) / 8)
+	downrate := int((downloadRate * 1024) / 8)
+	uprate := int((uploadRate * 1024) / 8)
 
 	if downrate != 0 {
 		cfg.DownloadRateLimiter = rate.NewLimiter(rate.Limit(downrate), downrate)
@@ -84,15 +90,23 @@ func startTorrentClient(settings serviceSettings) *torrent.Client {
 		cfg.UploadRateLimiter = rate.NewLimiter(rate.Limit(uprate), uprate)
 	}
 
-	newcl, err := torrent.NewClient(cfg)
+	var err error = nil
+	torrentClient, err = torrent.NewClient(cfg)
+	return torrentClient, err
+}
 
-	if err != nil {
-		go func() {
-			procError <- err.Error()
-		}()
+func StopTorrentClient() {
+	if torrentClient == nil {
+		return
 	}
 
-	return newcl
+	torrentClient.Close()
+
+	torrentClient = nil
+	activeTorrents = nil
+	receivedTorrent = nil
+
+	runtime.GC()
 }
 
 func addTorrent(uri string) *torrent.Torrent {
@@ -143,8 +157,6 @@ func addTorrent(uri string) *torrent.Torrent {
 	// 	return nil
 	// }
 
-	gettingTorrent = true
-
 	if receivedTorrent != nil {
 		t, err = torrentClient.AddTorrent(receivedTorrent)
 	} else {
@@ -153,7 +165,6 @@ func addTorrent(uri string) *torrent.Torrent {
 
 	if err != nil {
 		log.Panicln(err)
-		gettingTorrent = false
 		return nil
 	}
 
@@ -166,18 +177,15 @@ func addTorrent(uri string) *torrent.Torrent {
 				prevtime:    time.Now(),
 				fileclients: make(map[string]int),
 			}
-			gettingTorrent = false
 			receivedTorrent = nil
 			return t
 		} else {
 			t.Drop()
-			gettingTorrent = false
 			receivedTorrent = nil
 			return nil
 		}
 	case <-time.After(resolveTimeout):
 		t.Drop()
-		gettingTorrent = false
 		receivedTorrent = nil
 		return nil
 	}

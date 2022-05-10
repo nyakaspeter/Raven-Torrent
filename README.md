@@ -37,9 +37,9 @@
 
 ## Command-Line Arguments
 
-- **-storagetype** `string` select storage type (must be set to "memory" or "piecefile" or "file") (`default "memory"`)
+- **-storagetype** `string` select storage type (must be set to "memory" or "file") (`default "memory"`)
 - **-memorysize** `int` specify the storage memory size in MB if storagetype is set to "memory" (minimum 64) (`default 128`)
-- **-dir** `string` specify the directory where files will be downloaded to if storagetype is set to "piecefile" or "file"
+- **-dir** `string` specify the directory where files will be downloaded to if storagetype is set to "file"
 
 - **-downrate** `int` download speed rate in Kbps (0 is unlimited speed) (`default 0`)
 - **-uprate** `int` upload speed rate in Kbps (0 is upload disabled) (`default 0`)
@@ -67,7 +67,7 @@ White Raven Server is a command line application. Some examples for usage:
 <summary>Running the executable file without parameters to serve torrent data from memory</summary>
 
 ```
-wrserver
+raven
 ```
 
 </details>
@@ -76,7 +76,7 @@ wrserver
 <summary>Running the executable file with parameters to serve torrent data from local disk</summary>
 
 ```
-wrserver -storagetype="file" -dir="downloads"
+raven -storagetype="file" -dir="downloads"
 ```
 
 </details>
@@ -85,7 +85,7 @@ wrserver -storagetype="file" -dir="downloads"
 <summary>Running the executable file with parameters to use Jackett for torrent search</summary>
 
 ```
-wrserver -jackettaddress="http://192.168.0.2:9117" -jackettkey="1n53rty0urj4ck3tt4p1k3yh3r3"
+raven -jackettaddress="http://192.168.0.2:9117" -jackettkey="1n53rty0urj4ck3tt4p1k3yh3r3"
 ```
 
 </details>
@@ -101,7 +101,7 @@ You can build the application by running the following commands from the project
 set GOOS=linux
 set GOARCH=arm
 set GOARM=7
-go build -ldflags="-s -w" -o wrserver
+go build -ldflags="-s -w" -o raven
 ```
 
 </details>
@@ -113,7 +113,7 @@ go build -ldflags="-s -w" -o wrserver
 set GOOS=windows
 set GOARCH=amd64
 set CGO_ENABLED=0
-go build -ldflags="-s -w" -o wrserver.exe
+go build -ldflags="-s -w" -o raven.exe
 ```
 
 </details>
@@ -124,7 +124,7 @@ go build -ldflags="-s -w" -o wrserver.exe
 ```
 set GOOS=windows
 set GOARCH=386
-go build -ldflags="-s -w" -o wrserver.exe
+go build -ldflags="-s -w" -o raven.exe
 ```
 
 </details>
@@ -135,7 +135,7 @@ go build -ldflags="-s -w" -o wrserver.exe
 ```
 set GOOS=linux
 set GOARCH=amd64
-go build -ldflags="-s -w" -o wrserver
+go build -ldflags="-s -w" -o raven
 ```
 
 </details>
@@ -146,7 +146,7 @@ go build -ldflags="-s -w" -o wrserver
 ```
 set GOOS=linux
 set GOARCH=386
-go build -ldflags="-s -w" -o wrserver
+go build -ldflags="-s -w" -o raven
 ```
 
 </details>

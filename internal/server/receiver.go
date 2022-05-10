@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"log"
@@ -10,10 +10,9 @@ import (
 
 var receiverEnabled bool = false
 var receiverResponse string = ""
-var receivedTorrent *metainfo.MetaInfo = nil
 
 func setReceivedMagnet(magnet string) string {
-	if receiverEnabled == true {
+	if receiverEnabled {
 		log.Println("Received magnet link:", magnet)
 
 		receiverResponse = magnet
@@ -25,7 +24,7 @@ func setReceivedMagnet(magnet string) string {
 }
 
 func setReceivedTorrent(mi *metainfo.MetaInfo) string {
-	if receiverEnabled == true {
+	if receiverEnabled {
 		spec := torrent.TorrentSpecFromMetaInfo(mi)
 		log.Println("Received torrent file:", spec.DisplayName)
 

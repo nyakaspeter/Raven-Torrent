@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/silentmurdock/wrserver/pkg/torrents/output"
+	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
 )
 
 type apiShowResponse struct {

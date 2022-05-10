@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/base64"
@@ -10,8 +10,8 @@ import (
 	//"log"
 	"github.com/anacrolix/torrent"
 	"github.com/dustin/go-humanize"
+	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
 	"github.com/oz/osdb"
-	. "github.com/silentmurdock/wrserver/pkg/torrents/output"
 )
 
 type messageResponse struct {
@@ -86,10 +86,21 @@ type mediaRenderer struct {
 	Location string `json:"location"`
 }
 
+func successMessage() string {
+	message := messageResponse{
+		Success: true,
+		Message: "OK",
+	}
+
+	messageString, _ := json.Marshal(message)
+
+	return string(messageString)
+}
+
 func serverInfo() string {
 	message := messageResponse{
 		Success: true,
-		Message: "White Raven Server v" + version,
+		Message: "Raven Torrent v" + version,
 	}
 
 	messageString, _ := json.Marshal(message)
