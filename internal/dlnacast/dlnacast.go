@@ -19,6 +19,10 @@ type HTTPserver struct {
 	mux  *http.ServeMux
 }
 
+var ServerPort int
+var Server *HTTPserver = nil
+var TvPayload *TVPayload = nil
+
 func CreateServer(a string) HTTPserver {
 	srv := HTTPserver{
 		http: &http.Server{Addr: a},

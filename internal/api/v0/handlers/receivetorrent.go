@@ -1,61 +1,80 @@
-package server
+package handlers
 
 import (
-	"log"
+	"bytes"
+	"io"
+	"net/http"
 	"time"
 
-	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
+	"github.com/nyakaspeter/raven-torrent/internal/torrentclient"
 )
 
-var receiverEnabled bool = false
-var receiverResponse string = ""
+var webSocket *websocket.Conn
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
 
-func setReceivedMagnet(magnet string) string {
-	if receiverEnabled {
-		log.Println("Received magnet link:", magnet)
-
-		receiverResponse = magnet
-		receiverEnabled = false
-		return "ok"
-	} else {
-		return ""
+func ReceiveTorrent() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		io.WriteString(w, torrentclient.CheckReceiver(vars["todo"]))
 	}
 }
 
-func setReceivedTorrent(mi *metainfo.MetaInfo) string {
-	if receiverEnabled {
-		spec := torrent.TorrentSpecFromMetaInfo(mi)
-		log.Println("Received torrent file:", spec.DisplayName)
-
-		receivedTorrent = mi
-		receiverResponse = spec.DisplayName
-		receiverEnabled = false
-		return "ok"
-	} else {
-		return ""
+func ReceiverPage(version string, apiPrefix string) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, createReceiverPage(version, apiPrefix))
 	}
 }
 
-func checkReceiver(todo string) string {
-	if todo == "start" {
-		receiverEnabled = true
-		receiverResponse = ""
-		receivedTorrent = nil
-		return "{\"response\":\"ok\"}"
-	} else if todo == "check" {
-		// Wait 3 second because Long Polling
-		time.Sleep(3 * time.Second)
-		return "{\"received\":\"" + receiverResponse + "\"}"
-	} else if todo == "stop" {
-		receiverEnabled = false
-		return "{\"response\":\"ok\"}"
-	} else {
-		return "{\"response\":\"unknown\"}"
+func Websocket(procQuit chan bool) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
+		webSocket, _ = upgrader.Upgrade(w, r, nil) // Error ignored
+
+		for {
+			// Read message from ws
+			messageType, message, err := webSocket.ReadMessage()
+			if err != nil {
+				return
+			}
+
+			if messageType == 1 {
+				if string(message) == "stop" {
+					if err = webSocket.WriteMessage(1, []byte("{\"function\":\"stopserver\",\"data\": \"ok\"}")); err != nil {
+						return
+					}
+
+					go func() {
+						time.Sleep(1 * time.Nanosecond)
+						procQuit <- true
+					}()
+				} else {
+					value := torrentclient.SetReceivedMagnet(string(message))
+					if err = webSocket.WriteMessage(1, []byte("{\"function\":\"sendmagnet\",\"data\":\""+value+"\"}")); err != nil {
+						return
+					}
+				}
+			} else if messageType == 2 {
+				metaData, error := metainfo.Load(bytes.NewReader(message))
+				if error == nil {
+					value := torrentclient.SetReceivedTorrent(metaData)
+					if err = webSocket.WriteMessage(1, []byte("{\"function\":\"sendfile\",\"data\":\""+value+"\"}")); err != nil {
+						return
+					}
+				}
+			}
+
+		}
 	}
 }
 
-func createReceiverPage() string {
+func createReceiverPage(version string, apiPrefix string) string {
 	html := `<!DOCTYPE html>
 			<html lang="en">
 			<head>

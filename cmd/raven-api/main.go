@@ -8,8 +8,10 @@ import (
 	"os/exec"
 	"os/signal"
 
-	"github.com/nyakaspeter/raven-torrent/internal/server"
-	"github.com/nyakaspeter/raven-torrent/pkg/metadata/tmdb"
+	v0 "github.com/nyakaspeter/raven-torrent/internal/api/v0"
+	"github.com/nyakaspeter/raven-torrent/internal/dlnacast"
+	"github.com/nyakaspeter/raven-torrent/internal/torrentclient"
+	"github.com/nyakaspeter/raven-torrent/pkg/mediainfo/tmdb"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/jackett"
 )
 
@@ -98,10 +100,10 @@ func main() {
 	jackett.JackettKey = *settings.JackettKey
 
 	// Set OpenSubtitles user agent string
-	server.OpenSubtitlesUserAgent = *settings.OpenSubtitlesUserAgent
+	v0.OpenSubtitlesUserAgent = *settings.OpenSubtitlesUserAgent
 
 	// Set DLNA server port
-	server.DlnaServerPort = *settings.DlnaPort
+	dlnacast.ServerPort = *settings.DlnaPort
 
 	// Disable or enable the log in production mode
 	if !*settings.EnableLog {
@@ -141,7 +143,7 @@ func main() {
 func startTorrentClient() {
 	var err error = nil
 
-	_, err = server.StartTorrentClient(
+	_, err = torrentclient.StartTorrentClient(
 		*settings.StorageType,
 		*settings.MemorySize,
 		*settings.DownloadDir,
@@ -159,7 +161,7 @@ func startTorrentClient() {
 }
 
 func startHttpServer() {
-	server.StartHttpServer(
+	v0.StartHttpServer(
 		*settings.Host,
 		*settings.Port,
 		*settings.CORS,
@@ -183,7 +185,7 @@ func waitForSignals() {
 			log.Println("Restarting torrent client because torrent deletion.")
 		}
 
-		server.StopTorrentClient()
+		torrentclient.StopTorrentClient()
 		startTorrentClient()
 		waitForSignals()
 	}
@@ -204,6 +206,6 @@ func handleSignals() {
 func quit() {
 	log.Println("Quitting")
 
-	server.StopHttpServer()
-	server.StopTorrentClient()
+	v0.StopHttpServer()
+	torrentclient.StopTorrentClient()
 }
