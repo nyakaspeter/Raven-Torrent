@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/utils"
 )
 
 type apiShowResponse struct {
@@ -30,13 +31,13 @@ type apiShowResponse struct {
 	} `json:"torrents"`
 }
 
-func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []ShowTorrent) {
+func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []types.ShowTorrent) {
 	id := make([]string, 1)
 	id[0] = strings.TrimPrefix(imdb, "tt")
 
 	req, err := http.NewRequest("GET", "https://eztv.re/api/get-torrents?imdb_id="+id[0]+"&limit=100&page=1", nil)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
@@ -48,26 +49,26 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
 	firstresponse := apiShowResponse{}
 	err = json.Unmarshal(body, &firstresponse)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
 	if firstresponse.TorrentCount == 0 {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
@@ -91,15 +92,15 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 		response = append(response, temp)
 	}
 
-	outputShowData := []ShowTorrent{}
+	outputShowData := []types.ShowTorrent{}
 
 	for _, responsedata := range response {
 		for _, thistorrent := range responsedata.Torrents {
 			if (thistorrent.Season == season || season == "0") && (thistorrent.Episode == episode || episode == "0") {
 
-				quality := GuessQualityFromString(thistorrent.Filename)
+				quality := utils.GuessQualityFromString(thistorrent.Filename)
 
-				temp := ShowTorrent{
+				temp := types.ShowTorrent{
 					Hash:     thistorrent.Hash,
 					Quality:  quality,
 					Size:     thistorrent.SizeBytes,

@@ -1,1 +1,1 @@
-tar -a -c -f ..\bin\raven-%VERSION%-%PLATFORM%.zip -C ..\bin\%PLATFORM% raven*
+tar -a -c -f ..\build\api\raven-%VERSION%-%PLATFORM%.zip -C ..\build\api\%PLATFORM% raven*

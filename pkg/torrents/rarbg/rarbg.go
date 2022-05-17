@@ -8,7 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/utils"
 )
 
 type sessionToken struct {
@@ -60,12 +61,12 @@ var token = sessionToken{
 
 var tryCount = 0
 
-func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
+func GetMovieTorrentsByImdbId(imdb string, ch chan<- []types.MovieTorrent) {
 	if getToken() {
 		time.Sleep(time.Millisecond * time.Duration(token.WaitTime))
 		req, err := http.NewRequest("GET", "https://torrentapi.org/pubapi_v2.php?mode=search&app_id=whiteraven&format=json_extended&category=14;48;17;44;45;47;50;51;52;46;54&limit=50&min_seeders=1&sort=seeders&search_imdb="+imdb+"&token="+token.Token, nil)
 		if err != nil {
-			ch <- []MovieTorrent{}
+			ch <- []types.MovieTorrent{}
 			return
 		}
 
@@ -77,21 +78,21 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
-			ch <- []MovieTorrent{}
+			ch <- []types.MovieTorrent{}
 			return
 		}
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			ch <- []MovieTorrent{}
+			ch <- []types.MovieTorrent{}
 			return
 		}
 
 		response := apiMovieResponse{}
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			ch <- []MovieTorrent{}
+			ch <- []types.MovieTorrent{}
 			return
 		}
 
@@ -104,16 +105,16 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 		}
 
 		if len(response.TorrentResults) == 0 {
-			ch <- []MovieTorrent{}
+			ch <- []types.MovieTorrent{}
 			return
 		}
 
-		outputMovieData := []MovieTorrent{}
+		outputMovieData := []types.MovieTorrent{}
 
 		for _, thistorrent := range response.TorrentResults {
-			temp := MovieTorrent{
-				Hash:     GetInfoHashFromMagnetLink(thistorrent.Download),
-				Quality:  GuessQualityFromString(thistorrent.Title),
+			temp := types.MovieTorrent{
+				Hash:     utils.GetInfoHashFromMagnetLink(thistorrent.Download),
+				Quality:  utils.GuessQualityFromString(thistorrent.Title),
 				Size:     strconv.FormatInt(thistorrent.Size, 10),
 				Provider: "RARBG",
 				Lang:     "en",
@@ -128,12 +129,12 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 		ch <- outputMovieData
 		return
 	} else {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 }
 
-func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []ShowTorrent) {
+func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []types.ShowTorrent) {
 	if getToken() {
 		query := ""
 		if season != "0" {
@@ -154,7 +155,7 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 		time.Sleep(time.Millisecond * time.Duration(token.WaitTime))
 		req, err := http.NewRequest("GET", "https://torrentapi.org/pubapi_v2.php?mode=search&app_id=whiteraven&format=json_extended&category=18;41;49&limit=25&min_seeders=1&sort=seeders&search_imdb="+imdb+"&search_string="+query+"&token="+token.Token, nil)
 		if err != nil {
-			ch <- []ShowTorrent{}
+			ch <- []types.ShowTorrent{}
 			return
 		}
 
@@ -166,21 +167,21 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 		client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
-			ch <- []ShowTorrent{}
+			ch <- []types.ShowTorrent{}
 			return
 		}
 		defer resp.Body.Close()
 
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			ch <- []ShowTorrent{}
+			ch <- []types.ShowTorrent{}
 			return
 		}
 
 		response := apiShowResponse{}
 		err = json.Unmarshal(body, &response)
 		if err != nil {
-			ch <- []ShowTorrent{}
+			ch <- []types.ShowTorrent{}
 			return
 		}
 
@@ -193,16 +194,16 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 		}
 
 		if len(response.TorrentResults) == 0 {
-			ch <- []ShowTorrent{}
+			ch <- []types.ShowTorrent{}
 			return
 		}
 
-		outputShowData := []ShowTorrent{}
+		outputShowData := []types.ShowTorrent{}
 
 		for _, thistorrent := range response.TorrentResults {
-			temp := ShowTorrent{
-				Hash:     GetInfoHashFromMagnetLink(thistorrent.Download),
-				Quality:  GuessQualityFromString(thistorrent.Title),
+			temp := types.ShowTorrent{
+				Hash:     utils.GetInfoHashFromMagnetLink(thistorrent.Download),
+				Quality:  utils.GuessQualityFromString(thistorrent.Title),
 				Size:     strconv.FormatInt(thistorrent.Size, 10),
 				Provider: "RARBG",
 				Lang:     "en",
@@ -219,7 +220,7 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 		ch <- outputShowData
 		return
 	} else {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 }

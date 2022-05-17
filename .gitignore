@@ -6,4 +6,5 @@
 *.dylib
 *__debug*
 .vs
-bin
+build/api
+build/bin

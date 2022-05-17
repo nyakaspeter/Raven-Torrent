@@ -3,6 +3,7 @@ package torrentclient
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -13,6 +14,8 @@ import (
 	"net/http"
 	"net/url"
 	"runtime"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +23,10 @@ import (
 	"github.com/anacrolix/torrent"
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/anacrolix/torrent/storage"
+	"github.com/nyakaspeter/raven-torrent/internal/settings"
 	"github.com/nyakaspeter/raven-torrent/internal/torrentclient/memorystorage"
+	"github.com/nyakaspeter/raven-torrent/internal/torrentclient/types"
+	"github.com/nyakaspeter/raven-torrent/pkg/utils"
 	"github.com/oz/osdb"
 	"golang.org/x/time/rate"
 )
@@ -42,43 +48,34 @@ var maxPieceLength int64 = 16
 
 var ActiveTorrents map[string]*TorrentLeaf
 
-func StartTorrentClient(
-	storageType string,
-	memorySize int64,
-	downloadDir string,
-	downloadRate int,
-	uploadRate int,
-	maxConnections int,
-	noDht bool,
-	enableLog bool,
-) (*torrent.Client, error) {
+func StartTorrentClient() (*torrent.Client, error) {
 	ActiveTorrents = make(map[string]*TorrentLeaf)
 
 	cfg := torrent.NewDefaultClientConfig()
 
-	if storageType == "memory" {
-		maxPieceLength = int64(math.Floor(float64(memorySize) * 100 / 75 / 8))
-		memorystorage.SetMemorySize(memorySize, maxPieceLength)
+	if *settings.StorageType == "memory" {
+		maxPieceLength = int64(math.Floor(float64(*settings.MemorySize) * 100 / 75 / 8))
+		memorystorage.SetMemorySize(*settings.MemorySize, maxPieceLength)
 		cfg.DefaultStorage = memorystorage.NewMemoryStorage()
-	} else if storageType == "file" {
-		cfg.DefaultStorage = storage.NewFileByInfoHash(downloadDir)
-		cfg.DataDir = downloadDir
+	} else if *settings.StorageType == "file" {
+		cfg.DefaultStorage = storage.NewFileByInfoHash(*settings.DownloadDir)
+		cfg.DataDir = *settings.DownloadDir
 	}
 
-	cfg.EstablishedConnsPerTorrent = maxConnections
-	cfg.NoDHT = noDht
+	cfg.EstablishedConnsPerTorrent = *settings.MaxConnections
+	cfg.NoDHT = *settings.NoDHT
 	cfg.DisableIPv6 = true
 	cfg.DisableUTP = true
 
 	// Discard or show the logs
-	if !enableLog {
+	if !*settings.EnableLog {
 		cfg.Logger = alog.Discard
 	}
 	//cfg.Debug = true
 
 	// up/download speed rate in bytes per second from megabits per second
-	downrate := int((downloadRate * 1024) / 8)
-	uprate := int((uploadRate * 1024) / 8)
+	downrate := int((*settings.DownloadRate * 1024) / 8)
+	uprate := int((*settings.UploadRate * 1024) / 8)
 
 	if downrate != 0 {
 		cfg.DownloadRateLimiter = rate.NewLimiter(rate.Limit(downrate), downrate)
@@ -92,6 +89,7 @@ func StartTorrentClient(
 
 	var err error = nil
 	torrentClient, err = torrent.NewClient(cfg)
+
 	return torrentClient, err
 }
 
@@ -109,7 +107,31 @@ func StopTorrentClient() {
 	runtime.GC()
 }
 
-func AddTorrent(uri string) *torrent.Torrent {
+func AddTorrent(uri string) types.TorrentInfo {
+	info := types.TorrentInfo{}
+	torrent := addTorrentFromUri(uri)
+
+	if torrent == nil {
+		return info
+	}
+
+	info.Hash = torrent.InfoHash().String()
+	sortFiles(torrent.Files())
+
+	for _, f := range torrent.Files() {
+		tf := types.TorrentFile{
+			Name:   f.DisplayPath(),
+			Url:    "http://" + utils.GetLocalIP() + ":" + strconv.Itoa(*settings.Port) + "/api/v0/get/" + f.Torrent().InfoHash().String() + "/" + base64.StdEncoding.EncodeToString([]byte(f.DisplayPath())),
+			Length: strconv.FormatInt(f.FileInfo().Length, 10),
+		}
+
+		info.Files = append(info.Files, tf)
+	}
+
+	return info
+}
+
+func addTorrentFromUri(uri string) *torrent.Torrent {
 	var spec *torrent.TorrentSpec
 	var t *torrent.Torrent
 	var err error = nil
@@ -326,4 +348,10 @@ func fetchTorrent(url string) (*bytes.Reader, error) {
 	}
 
 	return bytes.NewReader(buf.Bytes()), nil
+}
+
+func sortFiles(files []*torrent.File) {
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].DisplayPath() < files[j].DisplayPath()
+	})
 }

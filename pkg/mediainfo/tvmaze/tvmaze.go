@@ -3,44 +3,39 @@ package tvmaze
 import (
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/nyakaspeter/raven-torrent/pkg/mediainfo/types"
 )
 
 type tvmazeIdResponse struct {
 	Id int `json:"id"`
 }
 
-type tvmazeErrorResponse struct {
-	Code   int `json:"code"`
-	Status int `json:"status"`
-}
-
-func GetEpisodes(tvdbid string, imdbid string) string {
-	tvmazeid := ""
-
-	if tvdbid != "" {
-		tvmazeid = getTvMazeId("tvdb", tvdbid)
+func GetEpisodes(showId types.ShowIds) ([]types.TvMazeEpisode, error) {
+	if showId.TvMazeId == "" {
+		if showId.TvdbId != "" {
+			showId.TvMazeId = getTvMazeId("tvdb", showId.TvdbId)
+		} else if showId.ImdbId != "" {
+			showId.TvMazeId = getTvMazeId("imdb", showId.ImdbId)
+		}
 	}
 
-	if tvmazeid == "" && imdbid != "" {
-		tvmazeid = getTvMazeId("imdb", imdbid)
+	if showId.TvMazeId == "" {
+		return []types.TvMazeEpisode{}, errors.New("id not found")
 	}
 
-	if tvmazeid == "" {
-		return ""
-	}
-
-	requesturl := "https://api.tvmaze.com/shows/" + tvmazeid + "/episodes"
+	requesturl := "https://api.tvmaze.com/shows/" + showId.TvMazeId + "/episodes"
 
 	req, err := http.NewRequest("GET", requesturl, nil)
 	if err != nil {
-		return ""
+		return []types.TvMazeEpisode{}, err
 	}
 
-	//req.Header.Set("User-Agent", UserAgent)
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -48,22 +43,22 @@ func GetEpisodes(tvdbid string, imdbid string) string {
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return ""
+		return []types.TvMazeEpisode{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return ""
+		return []types.TvMazeEpisode{}, err
 	}
 
-	var message tvmazeErrorResponse
-	err = json.Unmarshal(body, &message)
-	if err == nil || string(body) == "null" {
-		return ""
+	var results []types.TvMazeEpisode
+	err = json.Unmarshal(body, &results)
+	if err != nil {
+		return []types.TvMazeEpisode{}, err
 	}
 
-	return string(body)
+	return results, nil
 }
 
 func getTvMazeId(qtype string, id string) string {

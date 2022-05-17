@@ -1,54 +1,22 @@
 package utils
 
 import (
-	"archive/zip"
-	"bytes"
-	"crypto/tls"
-	"errors"
-	"io"
-	"io/ioutil"
 	"net"
-	"net/http"
 
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/charmap"
 )
 
-func FetchZip(zipurl string, useragent string) (*zip.Reader, error) {
-	req, err := http.NewRequest("GET", zipurl, nil)
+func GetLocalIP() string {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		return nil, err
+		return "127.0.0.1"
 	}
+	defer conn.Close()
 
-	req.Header.Set("User-Agent", useragent)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
 
-	client := &http.Client{Transport: tr}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, errors.New(resp.Status)
-		}
-		return nil, errors.New(string(b))
-	}
-
-	buf := &bytes.Buffer{}
-
-	_, err = io.Copy(buf, resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	b := bytes.NewReader(buf.Bytes())
-	return zip.NewReader(b, int64(b.Len()))
+	return localAddr.IP.String()
 }
 
 func DecodeData(encData []byte, enc string) string {
@@ -79,16 +47,4 @@ func DecodeData(encData []byte, enc string) string {
 
 	out, _ := dec.Bytes(encData)
 	return string(out)
-}
-
-func GetLocalIP() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return "127.0.0.1"
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP.String()
 }

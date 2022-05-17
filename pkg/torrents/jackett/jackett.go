@@ -9,7 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
+	"github.com/nyakaspeter/raven-torrent/internal/settings"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/utils"
 )
 
 type apiResponse struct {
@@ -31,17 +33,24 @@ type apiResponse struct {
 	} `json:"Results"`
 }
 
-var JackettAddress = ""
-var JackettKey = ""
-
 var movieCategories = [...]string{"2000", "2030", "2040"}
 var showCategories = [...]string{"5000", "5030", "5040"}
 
-func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
-	outputMovieData := []MovieTorrent{}
+func GetMovieTorrentsByImdbId(imdb string, jackettApiAddress string, jackettApiKey string, ch chan<- []types.MovieTorrent) {
+	apiAddress := *settings.JackettAddress
+	if jackettApiAddress != "" {
+		apiAddress = jackettApiAddress
+	}
+
+	apiKey := *settings.JackettKey
+	if jackettApiKey != "" {
+		apiKey = jackettApiKey
+	}
+
+	outputMovieData := []types.MovieTorrent{}
 
 	for _, category := range movieCategories {
-		req, err := http.NewRequest("GET", (JackettAddress + "/api/v2.0/indexers/all/results?apikey=" + JackettKey + "&category=" + category + "&query=" + imdb), nil)
+		req, err := http.NewRequest("GET", (apiAddress + "/api/v2.0/indexers/all/results?apikey=" + apiKey + "&category=" + category + "&query=" + imdb), nil)
 		if err != nil {
 			break
 		}
@@ -74,12 +83,12 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 		}
 
 		for _, thistorrent := range response.TorrentResults {
-			temp := MovieTorrent{
-				Hash:     GetInfoHashFromMagnetLink(thistorrent.MagnetUri),
-				Quality:  GuessQualityFromString(thistorrent.Title),
+			temp := types.MovieTorrent{
+				Hash:     utils.GetInfoHashFromMagnetLink(thistorrent.MagnetUri),
+				Quality:  utils.GuessQualityFromString(thistorrent.Title),
 				Size:     strconv.FormatInt(thistorrent.Size, 10),
 				Provider: thistorrent.Tracker,
-				Lang:     GuessLanguageFromString(thistorrent.Title),
+				Lang:     utils.GuessLanguageFromString(thistorrent.Title),
 				Title:    thistorrent.Title,
 				Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
 				Peers:    strconv.FormatInt(thistorrent.Peers, 10),
@@ -91,30 +100,25 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	}
 
 	ch <- outputMovieData
-	return
 }
 
-func GetMovieTorrentsByQuery(params map[string][]string, ch chan<- []MovieTorrent) {
-	// Decode params data
-	query := ""
-
-	if params["title"] != nil && params["title"][0] != "" {
-		query += params["title"][0]
-	} else {
-		ch <- []MovieTorrent{}
-		return
+func GetMovieTorrentsByText(searchText string, jackettApiAddress string, jackettApiKey string, ch chan<- []types.MovieTorrent) {
+	apiAddress := *settings.JackettAddress
+	if jackettApiAddress != "" {
+		apiAddress = jackettApiAddress
 	}
 
-	if params["releaseyear"] != nil {
-		query += " " + params["releaseyear"][0]
+	apiKey := *settings.JackettKey
+	if jackettApiKey != "" {
+		apiKey = jackettApiKey
 	}
 
-	query = url.QueryEscape(query)
+	query := url.QueryEscape(searchText)
 
-	outputMovieData := []MovieTorrent{}
+	outputMovieData := []types.MovieTorrent{}
 
 	for _, category := range movieCategories {
-		req, err := http.NewRequest("GET", (JackettAddress + "/api/v2.0/indexers/all/results?apikey=" + JackettKey + "&category=" + category + "&query=" + query), nil)
+		req, err := http.NewRequest("GET", (apiAddress + "/api/v2.0/indexers/all/results?apikey=" + apiKey + "&category=" + category + "&query=" + query), nil)
 		if err != nil {
 			break
 		}
@@ -146,12 +150,12 @@ func GetMovieTorrentsByQuery(params map[string][]string, ch chan<- []MovieTorren
 		}
 
 		for _, thistorrent := range response.TorrentResults {
-			temp := MovieTorrent{
-				Hash:     GetInfoHashFromMagnetLink(thistorrent.MagnetUri),
-				Quality:  GuessQualityFromString(thistorrent.Title),
+			temp := types.MovieTorrent{
+				Hash:     utils.GetInfoHashFromMagnetLink(thistorrent.MagnetUri),
+				Quality:  utils.GuessQualityFromString(thistorrent.Title),
 				Size:     strconv.FormatInt(thistorrent.Size, 10),
 				Provider: thistorrent.Tracker,
-				Lang:     GuessLanguageFromString(thistorrent.Title),
+				Lang:     utils.GuessLanguageFromString(thistorrent.Title),
 				Title:    thistorrent.Title,
 				Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
 				Peers:    strconv.FormatInt(thistorrent.Peers, 10),
@@ -163,14 +167,23 @@ func GetMovieTorrentsByQuery(params map[string][]string, ch chan<- []MovieTorren
 	}
 
 	ch <- outputMovieData
-	return
 }
 
-func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []ShowTorrent) {
-	outputShowData := []ShowTorrent{}
+func GetShowTorrentsByImdbId(imdb string, season string, episode string, jackettApiAddress string, jackettApiKey string, ch chan<- []types.ShowTorrent) {
+	apiAddress := *settings.JackettAddress
+	if jackettApiAddress != "" {
+		apiAddress = jackettApiAddress
+	}
+
+	apiKey := *settings.JackettKey
+	if jackettApiKey != "" {
+		apiKey = jackettApiKey
+	}
+
+	outputShowData := []types.ShowTorrent{}
 
 	for _, category := range showCategories {
-		req, err := http.NewRequest("GET", (JackettAddress + "/api/v2.0/indexers/all/results?apikey=" + JackettKey + "&category=" + category + "&query=" + imdb), nil)
+		req, err := http.NewRequest("GET", (apiAddress + "/api/v2.0/indexers/all/results?apikey=" + apiKey + "&category=" + category + "&query=" + imdb), nil)
 		if err != nil {
 			break
 		}
@@ -202,17 +215,17 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 		}
 
 		for _, thistorrent := range response.TorrentResults {
-			titleSeason, titleEpisode := GuessSeasonEpisodeNumberFromString(thistorrent.Title)
+			titleSeason, titleEpisode := utils.GuessSeasonEpisodeNumberFromString(thistorrent.Title)
 
 			if titleSeason == season && titleEpisode == episode {
-				temp := ShowTorrent{
-					Hash:     GetInfoHashFromMagnetLink(thistorrent.MagnetUri),
-					Quality:  GuessQualityFromString(thistorrent.Title),
+				temp := types.ShowTorrent{
+					Hash:     utils.GetInfoHashFromMagnetLink(thistorrent.MagnetUri),
+					Quality:  utils.GuessQualityFromString(thistorrent.Title),
 					Season:   season,
 					Episode:  episode,
 					Size:     strconv.FormatInt(thistorrent.Size, 10),
 					Provider: thistorrent.Tracker,
-					Lang:     GuessLanguageFromString(thistorrent.Title),
+					Lang:     utils.GuessLanguageFromString(thistorrent.Title),
 					Title:    thistorrent.Title,
 					Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
 					Peers:    strconv.FormatInt(thistorrent.Peers, 10),
@@ -225,19 +238,20 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 	}
 
 	ch <- outputShowData
-	return
 }
 
-func GetShowTorrentsByQuery(params map[string][]string, season string, episode string, ch chan<- []ShowTorrent) {
-	// Decode params data
-	query := ""
-
-	if params["title"] != nil && params["title"][0] != "" {
-		query += params["title"][0] + " "
-	} else {
-		ch <- []ShowTorrent{}
-		return
+func GetShowTorrentsByText(searchText string, season string, episode string, jackettApiAddress string, jackettApiKey string, ch chan<- []types.ShowTorrent) {
+	apiAddress := *settings.JackettAddress
+	if jackettApiAddress != "" {
+		apiAddress = jackettApiAddress
 	}
+
+	apiKey := *settings.JackettKey
+	if jackettApiKey != "" {
+		apiKey = jackettApiKey
+	}
+
+	query := searchText + " "
 
 	if season != "0" {
 		if len(season) == 1 {
@@ -256,10 +270,10 @@ func GetShowTorrentsByQuery(params map[string][]string, season string, episode s
 
 	query = url.QueryEscape(query)
 
-	outputShowData := []ShowTorrent{}
+	outputShowData := []types.ShowTorrent{}
 
 	for _, category := range showCategories {
-		req, err := http.NewRequest("GET", (JackettAddress + "/api/v2.0/indexers/all/results?apikey=" + JackettKey + "&category=" + category + "&query=" + query), nil)
+		req, err := http.NewRequest("GET", (apiAddress + "/api/v2.0/indexers/all/results?apikey=" + apiKey + "&category=" + category + "&query=" + query), nil)
 		if err != nil {
 			break
 		}
@@ -291,16 +305,16 @@ func GetShowTorrentsByQuery(params map[string][]string, season string, episode s
 		}
 
 		for _, thistorrent := range response.TorrentResults {
-			season, episode := GuessSeasonEpisodeNumberFromString(thistorrent.Title)
+			season, episode := utils.GuessSeasonEpisodeNumberFromString(thistorrent.Title)
 
-			temp := ShowTorrent{
-				Hash:     GetInfoHashFromMagnetLink(thistorrent.MagnetUri),
-				Quality:  GuessQualityFromString(thistorrent.Title),
+			temp := types.ShowTorrent{
+				Hash:     utils.GetInfoHashFromMagnetLink(thistorrent.MagnetUri),
+				Quality:  utils.GuessQualityFromString(thistorrent.Title),
 				Season:   season,
 				Episode:  episode,
 				Size:     strconv.FormatInt(thistorrent.Size, 10),
 				Provider: thistorrent.Tracker,
-				Lang:     GuessLanguageFromString(thistorrent.Title),
+				Lang:     utils.GuessLanguageFromString(thistorrent.Title),
 				Title:    thistorrent.Title,
 				Seeds:    strconv.FormatInt(thistorrent.Seeders, 10),
 				Peers:    strconv.FormatInt(thistorrent.Peers, 10),
@@ -312,5 +326,4 @@ func GetShowTorrentsByQuery(params map[string][]string, season string, episode s
 	}
 
 	ch <- outputShowData
-	return
 }

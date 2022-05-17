@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/anacrolix/torrent/metainfo"
-	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
 )
 
 type apiMovieResponse struct {
@@ -97,10 +97,10 @@ type apiShowResponse struct {
 
 const apiUrl = "https://popcorn-time.ga"
 
-func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
+func GetMovieTorrentsByImdbId(imdb string, ch chan<- []types.MovieTorrent) {
 	req, err := http.NewRequest("GET", apiUrl+"/movie/"+imdb, nil)
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
@@ -112,30 +112,30 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
 	response := apiMovieResponse{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
-	outputMovieData := []MovieTorrent{}
+	outputMovieData := []types.MovieTorrent{}
 
 	if response.Torrents.Lang.Quality360p.Url != "" {
 		data, err := metainfo.ParseMagnetURI(response.Torrents.Lang.Quality360p.Url)
 		if err == nil {
-			temp := MovieTorrent{
+			temp := types.MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "360p",
 				Size:     response.Torrents.Lang.Quality360p.Size,
@@ -153,7 +153,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	if response.Torrents.Lang.Quality480p.Url != "" {
 		data, err := metainfo.ParseMagnetURI(response.Torrents.Lang.Quality480p.Url)
 		if err == nil {
-			temp := MovieTorrent{
+			temp := types.MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "480p",
 				Size:     response.Torrents.Lang.Quality480p.Size,
@@ -171,7 +171,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	if response.Torrents.Lang.Quality720p.Url != "" {
 		data, err := metainfo.ParseMagnetURI(response.Torrents.Lang.Quality720p.Url)
 		if err == nil {
-			temp := MovieTorrent{
+			temp := types.MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "720p",
 				Size:     response.Torrents.Lang.Quality720p.Size,
@@ -189,7 +189,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	if response.Torrents.Lang.Quality1080p.Url != "" {
 		data, err := metainfo.ParseMagnetURI(response.Torrents.Lang.Quality1080p.Url)
 		if err == nil {
-			temp := MovieTorrent{
+			temp := types.MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "1080p",
 				Size:     response.Torrents.Lang.Quality1080p.Size,
@@ -207,7 +207,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	if response.Torrents.Lang.Quality2160p.Url != "" {
 		data, err := metainfo.ParseMagnetURI(response.Torrents.Lang.Quality2160p.Url)
 		if err == nil {
-			temp := MovieTorrent{
+			temp := types.MovieTorrent{
 				Hash:     data.InfoHash.String(),
 				Quality:  "2160p",
 				Size:     response.Torrents.Lang.Quality2160p.Size,
@@ -225,10 +225,10 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	ch <- outputMovieData
 }
 
-func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []ShowTorrent) {
+func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []types.ShowTorrent) {
 	req, err := http.NewRequest("GET", apiUrl+"/show/"+imdb, nil)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
@@ -240,25 +240,25 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
 	response := apiShowResponse{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
-	outputShowData := []ShowTorrent{}
+	outputShowData := []types.ShowTorrent{}
 
 	for _, thisepisode := range response.Episodes {
 		s := strconv.FormatInt(thisepisode.Season, 10)
@@ -285,7 +285,7 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 			if thisepisode.Torrents.Quality360p.Url != "" {
 				data, err := metainfo.ParseMagnetURI(thisepisode.Torrents.Quality360p.Url)
 				if err == nil {
-					temp := ShowTorrent{
+					temp := types.ShowTorrent{
 						Hash:     data.InfoHash.String(),
 						Quality:  "360p",
 						Size:     "0",
@@ -304,7 +304,7 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 			if thisepisode.Torrents.Quality480p.Url != "" {
 				data, err := metainfo.ParseMagnetURI(thisepisode.Torrents.Quality480p.Url)
 				if err == nil {
-					temp := ShowTorrent{
+					temp := types.ShowTorrent{
 						Hash:     data.InfoHash.String(),
 						Quality:  "480p",
 						Size:     "0",
@@ -323,7 +323,7 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 			if thisepisode.Torrents.Quality720p.Url != "" {
 				data, err := metainfo.ParseMagnetURI(thisepisode.Torrents.Quality720p.Url)
 				if err == nil {
-					temp := ShowTorrent{
+					temp := types.ShowTorrent{
 						Hash:     data.InfoHash.String(),
 						Quality:  "720p",
 						Size:     "0",
@@ -342,7 +342,7 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 			if thisepisode.Torrents.Quality1080p.Url != "" {
 				data, err := metainfo.ParseMagnetURI(thisepisode.Torrents.Quality1080p.Url)
 				if err == nil {
-					temp := ShowTorrent{
+					temp := types.ShowTorrent{
 						Hash:     data.InfoHash.String(),
 						Quality:  "1080p",
 						Size:     "0",
@@ -361,7 +361,7 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 			if thisepisode.Torrents.Quality2160p.Url != "" {
 				data, err := metainfo.ParseMagnetURI(thisepisode.Torrents.Quality2160p.Url)
 				if err == nil {
-					temp := ShowTorrent{
+					temp := types.ShowTorrent{
 						Hash:     data.InfoHash.String(),
 						Quality:  "2160p",
 						Size:     "0",

@@ -8,25 +8,12 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/utils"
 )
 
-func GetMovieTorrentsByQuery(params map[string][]string, ch chan<- []MovieTorrent) {
-	// Decode params data
-	query := ""
-
-	if params["title"] != nil && params["title"][0] != "" {
-		query += params["title"][0]
-	} else {
-		ch <- []MovieTorrent{}
-		return
-	}
-
-	// if params["releaseyear"] != nil {
-	// 	query += " " + params["releaseyear"][0]
-	// }
-
-	query = url.QueryEscape(query)
+func GetMovieTorrentsByText(searchText string, ch chan<- []types.MovieTorrent) {
+	query := url.QueryEscape(searchText)
 
 	// Disable security
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
@@ -34,13 +21,13 @@ func GetMovieTorrentsByQuery(params map[string][]string, ch chan<- []MovieTorren
 
 	doc, err := goquery.NewDocument("https://www.1337x.to/category-search/" + query + "/Movies/1/")
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
-	outputMovieData := []MovieTorrent{}
+	outputMovieData := []types.MovieTorrent{}
 
-	innerCh := make(chan MovieTorrent)
+	innerCh := make(chan types.MovieTorrent)
 
 	counter := 0
 	doc.Find("tbody tr").Each(func(_ int, item *goquery.Selection) {
@@ -68,16 +55,8 @@ func GetMovieTorrentsByQuery(params map[string][]string, ch chan<- []MovieTorren
 	ch <- outputMovieData
 }
 
-func GetShowTorrentsByQuery(params map[string][]string, season string, episode string, ch chan<- []ShowTorrent) {
-	// Decode params data
-	query := ""
-
-	if params["title"] != nil && params["title"][0] != "" {
-		query += params["title"][0] + " "
-	} else {
-		ch <- []ShowTorrent{}
-		return
-	}
+func GetShowTorrentsByText(searchText string, season string, episode string, ch chan<- []types.ShowTorrent) {
+	query := searchText + " "
 
 	if season != "0" {
 		if len(season) == 1 {
@@ -102,13 +81,13 @@ func GetShowTorrentsByQuery(params map[string][]string, season string, episode s
 
 	doc, err := goquery.NewDocument("https://www.1337x.to/category-search/" + query + "/TV/1/")
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
-	outputShowData := []ShowTorrent{}
+	outputShowData := []types.ShowTorrent{}
 
-	innerCh := make(chan ShowTorrent)
+	innerCh := make(chan types.ShowTorrent)
 
 	counter := 0
 	doc.Find("tbody tr").Each(func(_ int, item *goquery.Selection) {
@@ -136,24 +115,24 @@ func GetShowTorrentsByQuery(params map[string][]string, season string, episode s
 	ch <- outputShowData
 }
 
-func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
+func scrapeMovieData(movieUrl string, innerCh chan<- types.MovieTorrent) {
 	doc, err := goquery.NewDocument("https://www.1337x.to" + movieUrl)
 	if err != nil {
-		innerCh <- MovieTorrent{}
+		innerCh <- types.MovieTorrent{}
 	}
 
 	// Find title for raw magnet selection
 	title := doc.Find("title").Text()
 	title = strings.TrimPrefix(title, "Download")
 	title = strings.TrimSuffix(title, "Torrent | 1337x")
-	title = CleanString(title)
+	title = utils.CleanString(title)
 
 	// Trimmed title
 	//title := doc.Find(".box-info-heading h1").Text()
 	//title = strings.TrimSpace(title)
 
 	// Try to decode quality information from movieUrl
-	quality := GuessQualityFromString(title)
+	quality := utils.GuessQualityFromString(title)
 
 	// Find Magnet link and decode infohash
 	link := ""
@@ -161,7 +140,7 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 	doc.Find(".torrent-detail-page ul li a").Each(func(_ int, item *goquery.Selection) {
 		if item.Text() == "Magnet Download" {
 			link, _ = item.Attr("href")
-			infoHash = GetInfoHashFromMagnetLink(link)
+			infoHash = utils.GetInfoHashFromMagnetLink(link)
 		}
 	})
 
@@ -172,9 +151,9 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 	doc.Find(".torrent-detail-page ul.list li").Each(func(_ int, item *goquery.Selection) {
 		textNode := item.ChildrenFiltered("strong").Text()
 		if textNode == "Total size" {
-			size = DecodeSize(item.ChildrenFiltered("span").Text())
+			size = utils.DecodeSize(item.ChildrenFiltered("span").Text())
 		} else if textNode == "Language" {
-			language = DecodeLanguage(item.ChildrenFiltered("span").Text(), "en")
+			language = utils.DecodeLanguage(item.ChildrenFiltered("span").Text(), "en")
 		} else if textNode == "Seeders" {
 			seeders = item.ChildrenFiltered("span").Text()
 		} else if textNode == "Leechers" {
@@ -182,7 +161,7 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 		}
 	})
 
-	innerCh <- MovieTorrent{
+	innerCh <- types.MovieTorrent{
 		Hash:     infoHash,
 		Quality:  quality,
 		Size:     size,
@@ -195,24 +174,24 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 	}
 }
 
-func scrapeShowData(movieUrl string, season string, episode string, innerCh chan<- ShowTorrent) {
+func scrapeShowData(movieUrl string, season string, episode string, innerCh chan<- types.ShowTorrent) {
 	doc, err := goquery.NewDocument("https://www.1337x.to" + movieUrl)
 	if err != nil {
-		innerCh <- ShowTorrent{}
+		innerCh <- types.ShowTorrent{}
 	}
 
 	// Find title for raw magnet selection
 	title := doc.Find("title").Text()
 	title = strings.TrimPrefix(title, "Download")
 	title = strings.TrimSuffix(title, "Torrent | 1337x")
-	title = CleanString(title)
+	title = utils.CleanString(title)
 
 	// Trimmed title
 	//title := doc.Find(".box-info-heading h1").Text()
 	//title = strings.TrimSpace(title)
 
 	// Try to decode quality information from movieUrl
-	quality := GuessQualityFromString(title)
+	quality := utils.GuessQualityFromString(title)
 
 	// Find Magnet link and decode infohash
 	link := ""
@@ -220,7 +199,7 @@ func scrapeShowData(movieUrl string, season string, episode string, innerCh chan
 	doc.Find(".torrent-detail-page ul li a").Each(func(_ int, item *goquery.Selection) {
 		if item.Text() == "Magnet Download" {
 			link, _ = item.Attr("href")
-			infoHash = GetInfoHashFromMagnetLink(link)
+			infoHash = utils.GetInfoHashFromMagnetLink(link)
 		}
 	})
 
@@ -231,9 +210,9 @@ func scrapeShowData(movieUrl string, season string, episode string, innerCh chan
 	doc.Find(".torrent-detail-page ul.list li").Each(func(_ int, item *goquery.Selection) {
 		textNode := item.ChildrenFiltered("strong").Text()
 		if textNode == "Total size" {
-			size = DecodeSize(item.ChildrenFiltered("span").Text())
+			size = utils.DecodeSize(item.ChildrenFiltered("span").Text())
 		} else if textNode == "Language" {
-			language = DecodeLanguage(item.ChildrenFiltered("span").Text(), "en")
+			language = utils.DecodeLanguage(item.ChildrenFiltered("span").Text(), "en")
 		} else if textNode == "Seeders" {
 			seeders = item.ChildrenFiltered("span").Text()
 		} else if textNode == "Leechers" {
@@ -241,9 +220,9 @@ func scrapeShowData(movieUrl string, season string, episode string, innerCh chan
 		}
 	})
 
-	seasonNum, epNum := GuessSeasonEpisodeNumberFromString(title)
+	seasonNum, epNum := utils.GuessSeasonEpisodeNumberFromString(title)
 
-	innerCh <- ShowTorrent{
+	innerCh <- types.ShowTorrent{
 		Hash:     infoHash,
 		Quality:  quality,
 		Size:     size,

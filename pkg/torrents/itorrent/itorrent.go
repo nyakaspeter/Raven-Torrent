@@ -9,23 +9,24 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/utils"
 )
 
-func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
+func GetMovieTorrentsByImdbId(imdb string, ch chan<- []types.MovieTorrent) {
 	// Disable security
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	http.DefaultTransport.(*http.Transport).ResponseHeaderTimeout = 10 * time.Second
 
 	doc, err := goquery.NewDocument("https://itorrent.ws/torrentek/category/3/title/" + imdb + "/view_mode/photos/")
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
-	outputMovieData := []MovieTorrent{}
+	outputMovieData := []types.MovieTorrent{}
 
-	innerCh := make(chan MovieTorrent)
+	innerCh := make(chan types.MovieTorrent)
 
 	counter := 0
 	doc.Find("#ajaxtable .text-container").Each(func(_ int, item *goquery.Selection) {
@@ -46,7 +47,7 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	ch <- outputMovieData
 }
 
-func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []ShowTorrent) {
+func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan<- []types.ShowTorrent) {
 	// Disable security
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	http.DefaultTransport.(*http.Transport).ResponseHeaderTimeout = 10 * time.Second
@@ -63,13 +64,13 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 
 	doc, err := goquery.NewDocument(link)
 	if err != nil {
-		ch <- []ShowTorrent{}
+		ch <- []types.ShowTorrent{}
 		return
 	}
 
-	outputMovieData := []ShowTorrent{}
+	outputMovieData := []types.ShowTorrent{}
 
-	innerCh := make(chan ShowTorrent)
+	innerCh := make(chan types.ShowTorrent)
 
 	counter := 0
 	doc.Find("td.ellipse").Each(func(_ int, item *goquery.Selection) {
@@ -90,10 +91,10 @@ func GetShowTorrentsByImdbId(imdb string, season string, episode string, ch chan
 	ch <- outputMovieData
 }
 
-func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
+func scrapeMovieData(movieUrl string, innerCh chan<- types.MovieTorrent) {
 	doc, err := goquery.NewDocument("https://itorrent.ws" + movieUrl)
 	if err != nil {
-		innerCh <- MovieTorrent{}
+		innerCh <- types.MovieTorrent{}
 		return
 	}
 
@@ -102,7 +103,7 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 	title = strings.TrimSpace(title)
 
 	// Try to decode quality information from movieUrl
-	quality := GuessQualityFromString(movieUrl)
+	quality := utils.GuessQualityFromString(movieUrl)
 
 	// Find Magnet link and decode infohash
 	magnet := ""
@@ -110,7 +111,7 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 
 	doc.Find(".btn.btn-success.seed-warning").Each(func(_ int, item *goquery.Selection) {
 		magnet, _ = item.Attr("href")
-		infoHash = GetInfoHashFromMagnetLink(magnet)
+		infoHash = utils.GetInfoHashFromMagnetLink(magnet)
 	})
 
 	// Find Torrent link
@@ -130,7 +131,7 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 		dataType := item.Find(".type").Text()
 		switch dataType {
 		case "Méret":
-			size = DecodeSize(item.Next().Text())
+			size = utils.DecodeSize(item.Next().Text())
 		case "Peer":
 			value := item.Next().Text()
 			re := regexp.MustCompile("[0-9]+")
@@ -139,12 +140,12 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 			seeds = stringsize[0]
 			leech = stringsize[1]
 		case "Nyelv":
-			language = DecodeLanguage(item.Next().Text(), "hu")
+			language = utils.DecodeLanguage(item.Next().Text(), "hu")
 		}
 	})
 
 	if seedInt == 0 {
-		innerCh <- MovieTorrent{}
+		innerCh <- types.MovieTorrent{}
 		return
 	}
 
@@ -153,7 +154,7 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 	      innerCh <- OutputMovieStruct{}
 	  }*/
 
-	innerCh <- MovieTorrent{
+	innerCh <- types.MovieTorrent{
 		Hash:     infoHash,
 		Quality:  quality,
 		Size:     size,
@@ -167,10 +168,10 @@ func scrapeMovieData(movieUrl string, innerCh chan<- MovieTorrent) {
 	}
 }
 
-func scrapeShowData(movieUrl string, season string, episode string, innerCh chan<- ShowTorrent) {
+func scrapeShowData(movieUrl string, season string, episode string, innerCh chan<- types.ShowTorrent) {
 	doc, err := goquery.NewDocument("https://itorrent.ws" + movieUrl)
 	if err != nil {
-		innerCh <- ShowTorrent{}
+		innerCh <- types.ShowTorrent{}
 		return
 	}
 
@@ -179,10 +180,10 @@ func scrapeShowData(movieUrl string, season string, episode string, innerCh chan
 	title = strings.TrimSpace(title)
 
 	// Try to find episode number from title
-	season, episode = GuessSeasonEpisodeNumberFromString(title)
+	season, episode = utils.GuessSeasonEpisodeNumberFromString(title)
 
 	// Try to decode quality information from movieUrl
-	quality := GuessQualityFromString(movieUrl)
+	quality := utils.GuessQualityFromString(movieUrl)
 
 	// Find Magnet link and decode infohash
 	magnet := ""
@@ -190,7 +191,7 @@ func scrapeShowData(movieUrl string, season string, episode string, innerCh chan
 
 	doc.Find(".btn.btn-success.seed-warning").Each(func(_ int, item *goquery.Selection) {
 		magnet, _ = item.Attr("href")
-		infoHash = GetInfoHashFromMagnetLink(magnet)
+		infoHash = utils.GetInfoHashFromMagnetLink(magnet)
 	})
 
 	// Find Torrent link
@@ -210,7 +211,7 @@ func scrapeShowData(movieUrl string, season string, episode string, innerCh chan
 		dataType := item.Find(".type").Text()
 		switch dataType {
 		case "Méret":
-			size = DecodeSize(item.Next().Text())
+			size = utils.DecodeSize(item.Next().Text())
 		case "Peer":
 			value := item.Next().Text()
 			re := regexp.MustCompile("[0-9]+")
@@ -219,16 +220,16 @@ func scrapeShowData(movieUrl string, season string, episode string, innerCh chan
 			seeds = stringsize[0]
 			leech = stringsize[1]
 		case "Nyelv":
-			language = DecodeLanguage(item.Next().Text(), "hu")
+			language = utils.DecodeLanguage(item.Next().Text(), "hu")
 		}
 	})
 
 	if seedInt == 0 {
-		innerCh <- ShowTorrent{}
+		innerCh <- types.ShowTorrent{}
 		return
 	}
 
-	innerCh <- ShowTorrent{
+	innerCh <- types.ShowTorrent{
 		Hash:     infoHash,
 		Quality:  quality,
 		Size:     size,

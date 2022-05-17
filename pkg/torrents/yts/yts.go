@@ -8,7 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	. "github.com/nyakaspeter/raven-torrent/pkg/torrents/output"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/utils"
 )
 
 type apiMovieResponse struct {
@@ -31,10 +32,10 @@ type apiMovieResponse struct {
 	} `json:"data"`
 }
 
-func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
+func GetMovieTorrentsByImdbId(imdb string, ch chan<- []types.MovieTorrent) {
 	req, err := http.NewRequest("GET", "https://yts.mx/api/v2/list_movies.json?query_term="+imdb, nil)
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
@@ -46,42 +47,42 @@ func GetMovieTorrentsByImdbId(imdb string, ch chan<- []MovieTorrent) {
 	client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
 	response := apiMovieResponse{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
 	if response.Data.MovieCount == 0 {
-		ch <- []MovieTorrent{}
+		ch <- []types.MovieTorrent{}
 		return
 	}
 
-	outputMovieData := []MovieTorrent{}
+	outputMovieData := []types.MovieTorrent{}
 
 	for _, thistorrent := range response.Data.Movies[0].Torrents {
-		temp := MovieTorrent{
+		temp := types.MovieTorrent{
 			Hash:     thistorrent.Hash,
 			Quality:  thistorrent.Quality,
 			Size:     strconv.FormatInt(thistorrent.SizeBytes, 10),
 			Provider: "YTS",
-			Lang:     DecodeLanguage(response.Data.Movies[0].Lang, "en"),
+			Lang:     utils.DecodeLanguage(response.Data.Movies[0].Lang, "en"),
 			Title:    response.Data.Movies[0].TitleLong,
 			Seeds:    strconv.FormatInt(thistorrent.Seeds, 10),
 			Peers:    strconv.FormatInt(thistorrent.Peers, 10),
-			Magnet:   GetMagnetLinkFromInfoHash(thistorrent.Hash),
+			Magnet:   utils.GetMagnetLinkFromInfoHash(thistorrent.Hash),
 		}
 		outputMovieData = append(outputMovieData, temp)
 	}
