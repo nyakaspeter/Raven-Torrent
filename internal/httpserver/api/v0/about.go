@@ -6,6 +6,11 @@ import (
 	"net/http"
 )
 
+// @Router /about [get]
+// @Summary Get application details
+// @Description
+// @Tags General
+// @Success 200 {object} MessageResponse
 func About(version string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, serverInfo(version))

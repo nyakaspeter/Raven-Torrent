@@ -23,7 +23,7 @@ func StartHttpServer(appQuitSignal chan os.Signal) *http.Server {
 		Addr:         fmt.Sprintf("%s:%d", *settings.Host, *settings.Port),
 		ReadTimeout:  38 * time.Second,
 		WriteTimeout: 38 * time.Second,
-		Handler:      handleAPI(*settings.CORS, *settings.EnableReceiver),
+		Handler:      routesHandler(),
 	}
 
 	localIP := *settings.Host

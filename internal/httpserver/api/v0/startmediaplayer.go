@@ -11,6 +11,14 @@ import (
 	mediaplayertypes "github.com/nyakaspeter/raven-torrent/pkg/mediaplayer/types"
 )
 
+// @Router /startplayer/{base64path}/{base64args} [get]
+// @Summary Launch media player application
+// @Description
+// @Tags Media playback
+// @Param base64path path string true " "
+// @Param base64args path string true " "
+// @Success 200 {object} MessageResponse
+// @Failure 404 {object} MessageResponse
 func StartMediaPlayer() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -37,7 +45,7 @@ func StartMediaPlayer() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		io.WriteString(w, SuccessMessage())
+		io.WriteString(w, successMessage())
 	}
 }
 

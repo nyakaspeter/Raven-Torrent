@@ -17,6 +17,16 @@ type ShowMagnetLinksResponse struct {
 	Results []torrentsTypes.ShowTorrent `json:"results"`
 }
 
+// @Router /getshowmagnet/imdb/{imdb}/season/{season}/episode/{episode}/providers/{providers} [get]
+// @Summary Get show torrents by IMDB id
+// @Description
+// @Tags Torrent search
+// @Param imdb path string true " "
+// @Param season path int true " "
+// @Param episode path int true " "
+// @Param providers path string true " "
+// @Success 200 {object} ShowMagnetLinksResponse
+// @Failure 404 {object} MessageResponse
 func GetShowTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -33,6 +43,16 @@ func GetShowTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Router /getshowmagnet/query/{query}/season/{season}/episode/{episode}/providers/{providers} [get]
+// @Summary Get show torrents by query string
+// @Description
+// @Tags Torrent search
+// @Param query path string true " "
+// @Param season path int true " "
+// @Param episode path int true " "
+// @Param providers path string true " "
+// @Success 200 {object} ShowMagnetLinksResponse
+// @Failure 404 {object} MessageResponse
 func GetShowTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -49,6 +69,17 @@ func GetShowTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Router /getshowmagnet/imdb/{imdb}/query/{query}/season/{season}/episode/{episode}/providers/{providers} [get]
+// @Summary Get show torrents by IMDB id and query string
+// @Description
+// @Tags Torrent search
+// @Param imdb path string true " "
+// @Param query path string true " "
+// @Param season path int true " "
+// @Param episode path int true " "
+// @Param providers path string true " "
+// @Success 200 {object} ShowMagnetLinksResponse
+// @Failure 404 {object} MessageResponse
 func GetShowTorrentsByImdbAndQuery() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

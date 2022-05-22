@@ -19,6 +19,13 @@ type TorrentFilesResultsResponse struct {
 	Results []torrentclienttypes.TorrentFile `json:"results"`
 }
 
+// @Router /add/{base64uri} [get]
+// @Summary Get torrent info and streaming URLs
+// @Description
+// @Tags Torrent client
+// @Param base64uri path string true "Link to torrent file / magnet link (base64 encoded)"
+// @Success 200 {object} TorrentFilesResultsResponse
+// @Failure 404 {object} MessageResponse
 func AddTorrent() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

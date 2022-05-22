@@ -6,27 +6,41 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	v0 "github.com/nyakaspeter/raven-torrent/internal/httpserver/api/v0"
+	"github.com/nyakaspeter/raven-torrent/internal/settings"
 )
 
 const version = "0.6.0"
 
-func handleAPI(cors bool, receiver bool) http.Handler {
+// @Title           Raven Torrent API
+// @Version         0.6.0
+// @Host      localhost:9000
+// @BasePath  /api/v0
+func routesHandler() http.Handler {
 	router := mux.NewRouter()
 	router.SkipClean(true)
 
-	if receiver {
-		// Create torrent magnet send page from main page
+	router.HandleFunc("/file/{hash}/{base64path}", ServeTorrentFile())
+	router.HandleFunc("/subtitle/{base64path}/{encoding}/{type}", ServeSubtitleFile())
+
+	if *settings.EnableReceiver {
 		router.HandleFunc("/", ReceiverPage())
+		router.HandleFunc("/receiver/{todo}", ReceiveTorrent())
+		router.HandleFunc("/websocket", Websocket(quitSignal))
 	}
 
-	var api = router.PathPrefix("/api")
-	var apiV0 = api.PathPrefix("/v0").Subrouter()
-	//var apiV1 = api.PathPrefix("/v1").Subrouter()
+	if *settings.EnableSwaggerUi {
+		enableSwagger(router)
+	}
 
-	apiV0.HandleFunc("/about", v0.About(version))
-	apiV0.HandleFunc("/tmdbdiscover/type/{type}/genretype/{genretype}/sort/{sort}/date/{date}/lang/{lang}/page/{page}", v0.TmdbDiscover())
-	apiV0.HandleFunc("/tmdbsearch/type/{type}/lang/{lang}/page/{page}/text/{text}", v0.TmdbSearch())
-	apiV0.HandleFunc("/tmdbinfo/type/{type}/tmdbid/{tmdbid}/lang/{lang}", v0.TmdbInfo())
+	api := router.PathPrefix("/api")
+	apiV0 := api.PathPrefix("/v0").Subrouter()
+
+	apiV0.HandleFunc("/tmdbdiscover/type/movie/genretype/{genretype}/sort/{sort}/date/{date}/lang/{lang}/page/{page}", v0.DiscoverMovies())
+	apiV0.HandleFunc("/tmdbdiscover/type/tv/genretype/{genretype}/sort/{sort}/date/{date}/lang/{lang}/page/{page}", v0.DiscoverShows())
+	apiV0.HandleFunc("/tmdbsearch/type/movie/lang/{lang}/page/{page}/text/{text}", v0.SearchMovies())
+	apiV0.HandleFunc("/tmdbsearch/type/tv/lang/{lang}/page/{page}/text/{text}", v0.SearchShows())
+	apiV0.HandleFunc("/tmdbinfo/type/movie/tmdbid/{tmdbid}/lang/{lang}", v0.GetMovieInfo())
+	apiV0.HandleFunc("/tmdbinfo/type/tv/tmdbid/{tmdbid}/lang/{lang}", v0.GetShowInfo())
 	apiV0.HandleFunc("/tvmazeepisodes/tvdb/{tvdb}/imdb/{imdb}", v0.GetShowEpisodesByImdbAndTvdb())
 	apiV0.HandleFunc("/tvmazeepisodes/imdb/{imdb}", v0.GetShowEpisodesByImdb())
 	apiV0.HandleFunc("/tvmazeepisodes/tvdb/{tvdb}", v0.GetShowEpisodesByTvdb())
@@ -44,19 +58,16 @@ func handleAPI(cors bool, receiver bool) http.Handler {
 	apiV0.HandleFunc("/stats/{hash}", v0.GetTorrentStats())
 	apiV0.HandleFunc("/delete/{hash}", v0.DeleteTorrent())
 	apiV0.HandleFunc("/deleteall", v0.DeleteAllTorrents())
-	apiV0.HandleFunc("/receivemagnet/{todo}", v0.ReceiveTorrent())
-	apiV0.HandleFunc("/get/{hash}/{base64path}", v0.GetTorrentFile())
-	apiV0.HandleFunc("/getsubtitle/{base64path}/encode/{encode}/subtitle.{subtype}", v0.GetSubtitleFile())
-	apiV0.HandleFunc("/getmediarenderers", v0.GetMediaRenderers())
+	apiV0.HandleFunc("/mediarenderers", v0.GetMediaRenderers())
 	apiV0.HandleFunc("/cast/{base64location}/{base64query}", v0.CastTorrentFile())
 	apiV0.HandleFunc("/startplayer/{base64path}/{base64args}", v0.StartMediaPlayer())
 	apiV0.HandleFunc("/restart/downrate/{downrate}/uprate/{uprate}", v0.RestartTorrentClient(quitSignal))
 	apiV0.HandleFunc("/stop", v0.StopApplication(quitSignal))
-	apiV0.HandleFunc("/websocket", v0.Websocket(quitSignal))
+	apiV0.HandleFunc("/about", v0.About(version))
 	apiV0.NotFoundHandler = v0.NotFound()
 
 	// Enable CORS for api urls if required
-	if !cors {
+	if !*settings.CORS {
 		return router
 	} else {
 		return handlers.CORS(

@@ -19,6 +19,14 @@ type MovieMagnetLinksResponse struct {
 	Results []torrentsTypes.MovieTorrent `json:"results"`
 }
 
+// @Router /getmoviemagnet/imdb/{imdb}/providers/{providers} [get]
+// @Summary Get movie torrents by IMDB id
+// @Description
+// @Tags Torrent search
+// @Param imdb path string true " "
+// @Param providers path string true " "
+// @Success 200 {object} MovieMagnetLinksResponse
+// @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -35,6 +43,14 @@ func GetMovieTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Router /getmoviemagnet/query/{query}/providers/{providers} [get]
+// @Summary Get movie torrents by query string
+// @Description
+// @Tags Torrent search
+// @Param query path string true " "
+// @Param providers path string true " "
+// @Success 200 {object} MovieMagnetLinksResponse
+// @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -51,6 +67,15 @@ func GetMovieTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Router /getmoviemagnet/imdb/{imdb}/query/{query}/providers/{providers} [get]
+// @Summary Get movie torrents by IMDB id and query string
+// @Description
+// @Tags Torrent search
+// @Param imdb path string true " "
+// @Param query path string true " "
+// @Param providers path string true " "
+// @Success 200 {object} MovieMagnetLinksResponse
+// @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByImdbAndQuery() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

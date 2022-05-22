@@ -23,6 +23,13 @@ type TorrentStatsResponse struct {
 	Peers       string `json:"peers"`
 }
 
+// @Router /stats/{hash} [get]
+// @Summary Get torrent download stats
+// @Description
+// @Tags Torrent client
+// @Param hash path string true " "
+// @Success 200 {object} TorrentStatsResponse
+// @Failure 404 {object} MessageResponse
 func GetTorrentStats() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

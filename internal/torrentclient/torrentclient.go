@@ -109,7 +109,7 @@ func AddTorrent(uri string) types.TorrentInfo {
 	for _, f := range torrent.Files() {
 		tf := types.TorrentFile{
 			Name:   f.DisplayPath(),
-			Url:    "http://" + utils.GetLocalIP() + ":" + strconv.Itoa(*settings.Port) + "/api/v0/get/" + f.Torrent().InfoHash().String() + "/" + base64.StdEncoding.EncodeToString([]byte(f.DisplayPath())),
+			Url:    "http://" + utils.GetLocalIP() + ":" + strconv.Itoa(*settings.Port) + "/file/" + f.Torrent().InfoHash().String() + "/" + base64.StdEncoding.EncodeToString([]byte(f.DisplayPath())),
 			Length: strconv.FormatInt(f.FileInfo().Length, 10),
 		}
 
@@ -151,7 +151,7 @@ func GetActiveTorrents() []types.TorrentInfo {
 		for _, f := range t.Torrent.Files() {
 			tf := types.TorrentFile{
 				Name:   f.DisplayPath(),
-				Url:    "http://" + utils.GetLocalIP() + ":" + strconv.Itoa(*settings.Port) + "/api/v0/get/" + f.Torrent().InfoHash().String() + "/" + base64.StdEncoding.EncodeToString([]byte(f.DisplayPath())),
+				Url:    "http://" + utils.GetLocalIP() + ":" + strconv.Itoa(*settings.Port) + "/file/" + f.Torrent().InfoHash().String() + "/" + base64.StdEncoding.EncodeToString([]byte(f.DisplayPath())),
 				Length: strconv.FormatInt(f.FileInfo().Length, 10),
 			}
 

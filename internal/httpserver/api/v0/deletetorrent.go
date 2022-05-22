@@ -10,6 +10,13 @@ import (
 	"github.com/nyakaspeter/raven-torrent/internal/torrentclient"
 )
 
+// @Router /delete/{hash} [get]
+// @Summary Delete torrent from torrent client
+// @Description
+// @Tags Torrent client
+// @Param hash path string true " "
+// @Success 200 {object} MessageResponse
+// @Failure 404 {object} MessageResponse
 func DeleteTorrent() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -26,6 +33,12 @@ func DeleteTorrent() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Router /deleteall [get]
+// @Summary Delete all torrents from torrent client
+// @Description
+// @Tags Torrent client
+// @Success 200 {object} MessageResponse
+// @Failure 404 {object} MessageResponse
 func DeleteAllTorrents() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if len(torrentclient.ActiveTorrents) == 0 {

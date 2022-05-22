@@ -13,6 +13,14 @@ import (
 	"github.com/nyakaspeter/raven-torrent/internal/torrentclient"
 )
 
+// @Router /restart/downrate/{downrate}/uprate/{uprate} [get]
+// @Summary Restart torrent client with new bandwith limits
+// @Description
+// @Tags Torrent client
+// @Param downrate path int true " "
+// @Param uprate path int true " "
+// @Success 200 {object} MessageResponse
+// @Failure 404 {object} MessageResponse
 func RestartTorrentClient(quitSignal chan os.Signal) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

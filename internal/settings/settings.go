@@ -12,6 +12,7 @@ var MaxConnections *int
 var NoDHT *bool
 var EnableLog *bool
 var EnableReceiver *bool
+var EnableSwaggerUi *bool
 var StorageType *string
 var MemorySize *int64
 var Background *bool
@@ -32,6 +33,7 @@ func Init() {
 	NoDHT = flag.Bool("nodht", false, "disable dht")
 	EnableLog = flag.Bool("log", false, "enable log messages")
 	EnableReceiver = flag.Bool("receiver", true, "enable torrent receiver page")
+	EnableSwaggerUi = flag.Bool("swagger", false, "enable swagger ui")
 	StorageType = flag.String("storagetype", "memory", "select storage type (must be set to \"memory\" or \"file\")")
 	Background = flag.Bool("background", false, "run the server in the background")
 	CORS = flag.Bool("cors", true, "enable CORS")

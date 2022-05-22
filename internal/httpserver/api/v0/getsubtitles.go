@@ -32,6 +32,16 @@ type SubtitleFilesResultsResponse struct {
 	Results []SubtitleFilesResponse `json:"results"`
 }
 
+// @Router /subtitlesbyimdb/{imdb}/lang/{lang}/season/{season}/episode/{episode} [get]
+// @Summary Get subtitles by IMDB id
+// @Description
+// @Tags Subtitle search
+// @Param imdb path string true " "
+// @Param lang path string true " "
+// @Param season path int true " "
+// @Param episode path int true " "
+// @Success 200 {object} SubtitleFilesResultsResponse
+// @Failure 404 {object} MessageResponse
 func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -75,6 +85,16 @@ func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Router /subtitlesbytext/{text}/lang/{lang}/season/{season}/episode/{episode} [get]
+// @Summary Get subtitles by text
+// @Description
+// @Tags Subtitle search
+// @Param text path string true " "
+// @Param lang path string true " "
+// @Param season path int true " "
+// @Param episode path int true " "
+// @Success 200 {object} SubtitleFilesResultsResponse
+// @Failure 404 {object} MessageResponse
 func GetSubtitlesByText() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -118,6 +138,15 @@ func GetSubtitlesByText() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Router /subtitlesbyfile/{hash}/{base64path}/lang/{lang} [get]
+// @Summary Get subtitles by file hash
+// @Description
+// @Tags Subtitle search
+// @Param hash path string true " "
+// @Param base64path path string true " "
+// @Param lang path string true " "
+// @Success 200 {object} SubtitleFilesResultsResponse
+// @Failure 404 {object} MessageResponse
 func GetSubtitlesByFileHash() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -192,14 +221,16 @@ func subtitleFilesList(address string, files osdb.Subtitles, lang string) string
 			workMovieReleaseName := strings.ReplaceAll(f.MovieReleaseName, "\"", "")
 			workMovieReleaseName = strings.ReplaceAll(workMovieReleaseName, "\\", "")
 
+			baseLink := "http://" + address + "/subtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/" + f.SubEncoding
+
 			result := SubtitleFilesResponse{
 				Lang:         f.ISO639,
 				SubtitleName: workSubFileName,
 				ReleaseName:  workMovieReleaseName,
 				SubFormat:    f.SubFormat,
 				SubEncoding:  f.SubEncoding,
-				SubData:      "http://" + address + "/api/v0/getsubtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/encode/" + f.SubEncoding + "/subtitle.srt",
-				VttData:      "http://" + address + "/api/v0/getsubtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/encode/" + f.SubEncoding + "/subtitle.vtt",
+				SubData:      baseLink + "/srt",
+				VttData:      baseLink + "/vtt",
 			}
 
 			results = append(results, result)

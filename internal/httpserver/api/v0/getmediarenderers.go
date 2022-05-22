@@ -15,6 +15,12 @@ type MediaRenderersResponse struct {
 	Results []dlnacasttypes.MediaDevice `json:"results"`
 }
 
+// @Router /mediarenderers [get]
+// @Summary Get list of available casting targets
+// @Description
+// @Tags Media playback
+// @Success 200 {object} MediaRenderersResponse
+// @Failure 404 {object} MessageResponse
 func GetMediaRenderers() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Looking for media renderers...")

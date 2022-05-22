@@ -7,7 +7,7 @@ type MessageResponse struct {
 	Message string `json:"message"`
 }
 
-func SuccessMessage() string {
+func successMessage() string {
 	message := MessageResponse{
 		Success: true,
 		Message: "OK",

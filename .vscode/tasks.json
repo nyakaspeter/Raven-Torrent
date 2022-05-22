@@ -20,6 +20,11 @@
             }
         },
         {
+            "label": "Generate API docs",
+            "type": "shell",
+            "command": "swag init -d .\\internal\\httpserver -g routes.go --parseDependency --parseDepth 2",
+        },
+        {
             "label": "Launch desktop app",
             "type": "shell",
             "command": "wails dev"

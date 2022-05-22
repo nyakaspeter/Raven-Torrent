@@ -12,6 +12,14 @@ import (
 	dlnacasttypes "github.com/nyakaspeter/raven-torrent/pkg/dlnacast/types"
 )
 
+// @Router /cast/{base64location}/{base64query} [get]
+// @Summary Cast media file to TV or media player
+// @Description
+// @Tags Media playback
+// @Param base64location path string true " "
+// @Param base64query path string true " "
+// @Success 200 {object} MessageResponse
+// @Failure 404 {object} MessageResponse
 func CastTorrentFile() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -60,7 +68,7 @@ func CastTorrentFile() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		io.WriteString(w, SuccessMessage())
+		io.WriteString(w, successMessage())
 	}
 }
 

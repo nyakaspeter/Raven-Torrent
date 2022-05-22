@@ -11,6 +11,18 @@ import (
 	mediainfotypes "github.com/nyakaspeter/raven-torrent/pkg/mediainfo/types"
 )
 
+type ShowEpisodesResponse struct {
+	Success bool                           `json:"success"`
+	Results []mediainfotypes.TvMazeEpisode `json:"results"`
+}
+
+// @Router /tvmazeepisodes/imdb/{imdb} [get]
+// @Summary Get show episodes by IMDB id
+// @Description
+// @Tags Media search
+// @Param imdb path string true " "
+// @Success 200 {object} ShowEpisodesResponse
+// @Failure 404 {object} MessageResponse
 func GetShowEpisodesByImdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -19,22 +31,23 @@ func GetShowEpisodesByImdb() func(w http.ResponseWriter, r *http.Request) {
 		showIds := mediainfotypes.ShowIds{}
 		showIds.ImdbId = vars["imdb"]
 
-		output := ""
-
-		results := mediainfo.GetShowEpisodes(showIds)
-		if len(results) > 0 {
-			resultsJson, _ := json.Marshal(results)
-			output = string(resultsJson)
-		}
-
-		if output != "" {
-			io.WriteString(w, showEpisodeList(output))
-		} else {
+		episodes := mediainfo.GetShowEpisodes(showIds)
+		if len(episodes) == 0 {
 			http.Error(w, noTvMazeDataFound(), http.StatusNotFound)
+			return
 		}
+
+		io.WriteString(w, showEpisodeList(episodes))
 	}
 }
 
+// @Router /tvmazeepisodes/tvdb/{tvdb} [get]
+// @Summary Get show episodes by TVDB id
+// @Description
+// @Tags Media search
+// @Param tvdb path string true " "
+// @Success 200 {object} ShowEpisodesResponse
+// @Failure 404 {object} MessageResponse
 func GetShowEpisodesByTvdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -43,22 +56,24 @@ func GetShowEpisodesByTvdb() func(w http.ResponseWriter, r *http.Request) {
 		showIds := mediainfotypes.ShowIds{}
 		showIds.TvdbId = vars["tvdb"]
 
-		output := ""
-
-		results := mediainfo.GetShowEpisodes(showIds)
-		if len(results) > 0 {
-			resultsJson, _ := json.Marshal(results)
-			output = string(resultsJson)
-		}
-
-		if output != "" {
-			io.WriteString(w, showEpisodeList(output))
-		} else {
+		episodes := mediainfo.GetShowEpisodes(showIds)
+		if len(episodes) == 0 {
 			http.Error(w, noTvMazeDataFound(), http.StatusNotFound)
+			return
 		}
+
+		io.WriteString(w, showEpisodeList(episodes))
 	}
 }
 
+// @Router /tvmazeepisodes/tvdb/{tvdb}/imdb/{imdb} [get]
+// @Summary Get show episodes by TVDB id and IMDB id
+// @Description
+// @Tags Media search
+// @Param tvdb path string true " "
+// @Param imdb path string true " "
+// @Success 200 {object} ShowEpisodesResponse
+// @Failure 404 {object} MessageResponse
 func GetShowEpisodesByImdbAndTvdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -68,24 +83,24 @@ func GetShowEpisodesByImdbAndTvdb() func(w http.ResponseWriter, r *http.Request)
 		showIds.ImdbId = vars["imdb"]
 		showIds.TvdbId = vars["tvdb"]
 
-		output := ""
-
-		results := mediainfo.GetShowEpisodes(showIds)
-		if len(results) > 0 {
-			resultsJson, _ := json.Marshal(results)
-			output = string(resultsJson)
-		}
-
-		if output != "" {
-			io.WriteString(w, showEpisodeList(output))
-		} else {
+		episodes := mediainfo.GetShowEpisodes(showIds)
+		if len(episodes) == 0 {
 			http.Error(w, noTvMazeDataFound(), http.StatusNotFound)
+			return
 		}
+
+		io.WriteString(w, showEpisodeList(episodes))
 	}
 }
 
-func showEpisodeList(data string) string {
-	return "{\"success\":true,\"results\":" + data + "}"
+func showEpisodeList(episodes []mediainfotypes.TvMazeEpisode) string {
+	response := ShowEpisodesResponse{
+		Success: true,
+		Results: episodes,
+	}
+
+	json, _ := json.Marshal(response)
+	return string(json)
 }
 
 func noTvMazeDataFound() string {

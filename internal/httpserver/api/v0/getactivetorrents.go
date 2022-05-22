@@ -21,6 +21,12 @@ type TorrentListResultsResponse struct {
 	Results []TorrentListResponse `json:"results"`
 }
 
+// @Router /torrents [get]
+// @Summary Get list of added torrents
+// @Description
+// @Tags Torrent client
+// @Success 200 {object} TorrentListResultsResponse
+// @Failure 404 {object} MessageResponse
 func GetActiveTorrents() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		at := torrentclient.GetActiveTorrents()
