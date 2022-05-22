@@ -5,9 +5,9 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/nyakaspeter/raven-torrent/internal/torrentclient"
+	"github.com/nyakaspeter/raven-torrent/internal/torrentclient/types"
 )
 
 type TorrentListResponse struct {
@@ -23,23 +23,26 @@ type TorrentListResultsResponse struct {
 
 func GetActiveTorrents() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if len(torrentclient.ActiveTorrents) > 0 {
-			io.WriteString(w, activeTorrentsList())
-		} else {
-			http.Error(w, noActiveTorrentsFound(), http.StatusNotFound)
+		at := torrentclient.GetActiveTorrents()
+
+		if len(at) == 0 {
 			log.Println("No active torrents found.")
+			http.Error(w, noActiveTorrentsFound(), http.StatusNotFound)
+			return
 		}
+
+		io.WriteString(w, activeTorrentsList(at))
 	}
 }
 
-func activeTorrentsList() string {
+func activeTorrentsList(at []types.TorrentInfo) string {
 	var results []TorrentListResponse
 
-	for _, torrent := range torrentclient.ActiveTorrents {
+	for _, torrent := range at {
 		result := TorrentListResponse{
-			Name:   torrent.Torrent.Name(),
-			Hash:   torrent.Torrent.InfoHash().String(),
-			Length: strconv.FormatInt(torrent.Torrent.Length(), 10),
+			Name:   torrent.Name,
+			Hash:   torrent.Hash,
+			Length: torrent.Length,
 		}
 
 		results = append(results, result)

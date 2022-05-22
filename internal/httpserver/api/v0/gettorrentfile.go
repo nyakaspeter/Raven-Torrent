@@ -17,14 +17,14 @@ func GetTorrentFile() func(w http.ResponseWriter, r *http.Request) {
 		if d, err := base64.StdEncoding.DecodeString(vars["base64path"]); err == nil {
 			if t, ok := torrentclient.ActiveTorrents[vars["hash"]]; ok {
 
-				idx := torrentclient.GetFileByPath(string(d), t.Torrent.Files())
+				idx := torrentclient.GetFileIndexByPath(string(d), t.Torrent.Files())
 				if idx != -1 {
 					file := t.Torrent.Files()[idx]
 
 					path := file.DisplayPath()
 					log.Println("Downloading torrent:", vars["hash"])
 
-					torrentclient.IncreaseFileClients(path, t)
+					torrentclient.IncreaseConnections(path, t)
 
 					/*log.Println("Calculate Opensubtitles hash...")
 					fileHash := calculateOpensubtitlesHash(file)
@@ -32,8 +32,8 @@ func GetTorrentFile() func(w http.ResponseWriter, r *http.Request) {
 
 					torrentclient.ServeTorrentFile(w, r, file)
 					//stop downloading the file when no connections left
-					if torrentclient.DecreaseFileClients(path, t) <= 0 {
-						torrentclient.StopDownloadFile(file)
+					if torrentclient.DecreaseConnections(path, t) <= 0 {
+						torrentclient.StopFileDownload(file)
 					}
 				} else {
 					http.Error(w, invalidBase64Path(), http.StatusNotFound)

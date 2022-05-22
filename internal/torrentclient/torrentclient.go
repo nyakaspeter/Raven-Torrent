@@ -2,21 +2,15 @@ package torrentclient
 
 import (
 	"bytes"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"math"
 	"net/http"
-	"net/url"
 	"runtime"
-	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	alog "github.com/anacrolix/log"
@@ -31,14 +25,6 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// Torrent lock structure
-type TorrentLeaf struct {
-	Torrent     *torrent.Torrent
-	Progress    int64          // Downoad stats measurement
-	Prevtime    time.Time      // Previous time for progress calculation
-	FileClients map[string]int // Count active connections
-}
-
 const resolveTimeout = time.Second * 35
 const megaByte = 1024 * 1024
 
@@ -46,10 +32,10 @@ var torrentClient *torrent.Client
 var receivedTorrent *metainfo.MetaInfo = nil
 var maxPieceLength int64 = 16
 
-var ActiveTorrents map[string]*TorrentLeaf
+var ActiveTorrents map[string]*types.TorrentLeaf
 
 func StartTorrentClient() (*torrent.Client, error) {
-	ActiveTorrents = make(map[string]*TorrentLeaf)
+	ActiveTorrents = make(map[string]*types.TorrentLeaf)
 
 	cfg := torrent.NewDefaultClientConfig()
 
@@ -116,6 +102,8 @@ func AddTorrent(uri string) types.TorrentInfo {
 	}
 
 	info.Hash = torrent.InfoHash().String()
+	info.Name = torrent.Name()
+	info.Length = strconv.FormatInt(torrent.Length(), 10)
 	sortFiles(torrent.Files())
 
 	for _, f := range torrent.Files() {
@@ -129,88 +117,6 @@ func AddTorrent(uri string) types.TorrentInfo {
 	}
 
 	return info
-}
-
-func addTorrentFromUri(uri string) *torrent.Torrent {
-	var spec *torrent.TorrentSpec
-	var t *torrent.Torrent
-	var err error = nil
-
-	if strings.HasPrefix(uri, "magnet:") {
-		// Add magnet link
-		spec, err = torrent.TorrentSpecFromMagnetUri(uri)
-		receivedTorrent = nil
-	} else if receivedTorrent != nil {
-		// Add previously received torrent file
-		spec = torrent.TorrentSpecFromMetaInfo(receivedTorrent)
-	} else {
-		// Download torrent file from
-		r, e := fetchTorrent(uri)
-		if e == nil {
-			receivedTorrent, err = metainfo.Load(r)
-			spec = torrent.TorrentSpecFromMetaInfo(receivedTorrent)
-		} else {
-			urlError, isUrlError := e.(*url.Error)
-			if isUrlError && strings.HasPrefix(urlError.URL, "magnet:") {
-				// If Jackett redirected to a magnet link
-				uri = urlError.URL
-				spec, err = torrent.TorrentSpecFromMagnetUri(uri)
-				receivedTorrent = nil
-			} else {
-				err = e
-			}
-		}
-	}
-
-	if err != nil {
-		log.Println(err)
-		return nil
-	}
-
-	infoHash := spec.InfoHash.String()
-	if t, ok := ActiveTorrents[infoHash]; ok {
-		receivedTorrent = nil
-		return t.Torrent
-	}
-
-	// // Intended for streaming so only one torrent stream allowed at a time
-	// if len(torrents) > 0 || gettingTorrent == true {
-	// 	log.Println("Only one torrent stream allowed at a time.")
-	// 	return nil
-	// }
-
-	if receivedTorrent != nil {
-		t, err = torrentClient.AddTorrent(receivedTorrent)
-	} else {
-		t, err = torrentClient.AddMagnet(uri)
-	}
-
-	if err != nil {
-		log.Panicln(err)
-		return nil
-	}
-
-	select {
-	case <-t.GotInfo():
-		if t.Info().PieceLength <= (maxPieceLength * megaByte) {
-			ActiveTorrents[t.InfoHash().String()] = &TorrentLeaf{
-				Torrent:     t,
-				Progress:    0,
-				Prevtime:    time.Now(),
-				FileClients: make(map[string]int),
-			}
-			receivedTorrent = nil
-			return t
-		} else {
-			t.Drop()
-			receivedTorrent = nil
-			return nil
-		}
-	case <-time.After(resolveTimeout):
-		t.Drop()
-		receivedTorrent = nil
-		return nil
-	}
 }
 
 func ServeTorrentFile(w http.ResponseWriter, r *http.Request, file *torrent.File) {
@@ -231,6 +137,83 @@ func ServeTorrentFile(w http.ResponseWriter, r *http.Request, file *torrent.File
 	}
 
 	http.ServeContent(w, r, fname, time.Unix(0, 0), reader)
+}
+
+func GetActiveTorrents() []types.TorrentInfo {
+	activeTorrents := []types.TorrentInfo{}
+
+	for _, t := range ActiveTorrents {
+		at := types.TorrentInfo{}
+		at.Hash = t.Torrent.InfoHash().String()
+		at.Name = t.Torrent.Name()
+		at.Length = strconv.FormatInt(t.Torrent.Length(), 10)
+
+		for _, f := range t.Torrent.Files() {
+			tf := types.TorrentFile{
+				Name:   f.DisplayPath(),
+				Url:    "http://" + utils.GetLocalIP() + ":" + strconv.Itoa(*settings.Port) + "/api/v0/get/" + f.Torrent().InfoHash().String() + "/" + base64.StdEncoding.EncodeToString([]byte(f.DisplayPath())),
+				Length: strconv.FormatInt(f.FileInfo().Length, 10),
+			}
+
+			at.Files = append(at.Files, tf)
+		}
+
+		activeTorrents = append(activeTorrents, at)
+	}
+
+	return activeTorrents
+}
+
+func RemoveTorrent(hash string) error {
+	if t, ok := ActiveTorrents[hash]; ok {
+		for _, f := range t.Torrent.Files() {
+			StopFileDownload(f)
+		}
+		t.Torrent.Drop()
+		delete(ActiveTorrents, hash)
+		return nil
+	}
+
+	return errors.New("torrent not found")
+}
+
+func StopFileDownload(file *torrent.File) {
+	if file != nil {
+		file.SetPriority(torrent.PiecePriorityNone)
+	}
+}
+
+func IncreaseConnections(path string, t *types.TorrentLeaf) int {
+	if v, ok := t.FileClients[path]; ok {
+		v++
+		t.FileClients[path] = v
+		return v
+	} else {
+		t.FileClients[path] = 1
+		return 1
+	}
+}
+
+func DecreaseConnections(path string, t *types.TorrentLeaf) int {
+	if v, ok := t.FileClients[path]; ok {
+		v--
+		t.FileClients[path] = v
+		return v
+	} else {
+		t.FileClients[path] = 0
+		return 0
+	}
+}
+
+func GetFileIndexByPath(search string, files []*torrent.File) int {
+
+	for i, f := range files {
+		if search == f.DisplayPath() {
+			return i
+		}
+	}
+
+	return -1
 }
 
 func CalculateOpensubtitlesHash(file *torrent.File) string {
@@ -268,90 +251,4 @@ func CalculateOpensubtitlesHash(file *torrent.File) string {
 	}
 
 	return fmt.Sprintf("%016x", hash+uint64(file.Length()))
-}
-
-func StopDownloadFile(file *torrent.File) {
-	if file != nil {
-		file.SetPriority(torrent.PiecePriorityNone)
-	}
-}
-
-func StopAllFileDownload(files []*torrent.File) {
-	for _, f := range files {
-		f.SetPriority(torrent.PiecePriorityNone)
-	}
-}
-
-func IncreaseFileClients(path string, t *TorrentLeaf) int {
-	if v, ok := t.FileClients[path]; ok {
-		v++
-		t.FileClients[path] = v
-		return v
-	} else {
-		t.FileClients[path] = 1
-		return 1
-	}
-}
-
-func DecreaseFileClients(path string, t *TorrentLeaf) int {
-	if v, ok := t.FileClients[path]; ok {
-		v--
-		t.FileClients[path] = v
-		return v
-	} else {
-		t.FileClients[path] = 0
-		return 0
-	}
-}
-
-func GetFileByPath(search string, files []*torrent.File) int {
-
-	for i, f := range files {
-		if search == f.DisplayPath() {
-			return i
-		}
-	}
-
-	return -1
-}
-
-func fetchTorrent(url string) (*bytes.Reader, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-	}
-
-	client := &http.Client{Transport: tr}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 400 {
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return nil, errors.New(resp.Status)
-		}
-		return nil, errors.New(string(b))
-	}
-
-	buf := &bytes.Buffer{}
-
-	_, err = io.Copy(buf, resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return bytes.NewReader(buf.Bytes()), nil
-}
-
-func sortFiles(files []*torrent.File) {
-	sort.Slice(files, func(i, j int) bool {
-		return files[i].DisplayPath() < files[j].DisplayPath()
-	})
 }

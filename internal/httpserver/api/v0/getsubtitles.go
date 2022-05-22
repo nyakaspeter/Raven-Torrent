@@ -124,21 +124,21 @@ func GetSubtitlesByFileHash() func(w http.ResponseWriter, r *http.Request) {
 
 		if d, err := base64.StdEncoding.DecodeString(vars["base64path"]); err == nil {
 			if t, ok := torrentclient.ActiveTorrents[vars["hash"]]; ok {
-				idx := torrentclient.GetFileByPath(string(d), t.Torrent.Files())
+				idx := torrentclient.GetFileIndexByPath(string(d), t.Torrent.Files())
 				file := t.Torrent.Files()[idx]
 
 				path := file.DisplayPath()
 				log.Println("Calculate Opensubtitles hash...")
 
-				torrentclient.IncreaseFileClients(path, t)
+				torrentclient.IncreaseConnections(path, t)
 
 				fileSize := file.Length()
 				fileHash := torrentclient.CalculateOpensubtitlesHash(file)
 				log.Println("Opensubtitles hash calculated:", fileHash)
 
 				//stop downloading the file when no connections left
-				if torrentclient.DecreaseFileClients(path, t) <= 0 {
-					torrentclient.StopDownloadFile(file)
+				if torrentclient.DecreaseConnections(path, t) <= 0 {
+					torrentclient.StopFileDownload(file)
 				}
 
 				langs := strings.Split(vars["lang"], ",")

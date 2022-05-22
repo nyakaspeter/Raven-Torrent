@@ -80,6 +80,14 @@ func (a *App) AddTorrent(uri string) torrentclienttypes.TorrentInfo {
 	return torrentclient.AddTorrent(uri)
 }
 
+func (a *App) RemoveTorrent(hash string) error {
+	return torrentclient.RemoveTorrent(hash)
+}
+
+func (a *App) GetActiveTorrents() []torrentclienttypes.TorrentInfo {
+	return torrentclient.GetActiveTorrents()
+}
+
 func (a *App) GetSubtitles(movie subtitlestypes.MediaParams, languages []string) []osdb.Subtitle {
 	return subtitles.GetSubtitles(movie, languages)
 }

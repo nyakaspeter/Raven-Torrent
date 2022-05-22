@@ -27,13 +27,6 @@ func RestartTorrentClient(quitSignal chan os.Signal) func(w http.ResponseWriter,
 			http.Error(w, failedToSetLimits(), http.StatusBadRequest)
 		}
 
-		for _, torrent := range torrentclient.ActiveTorrents {
-			log.Println("Delete torrent:", torrent.Torrent.InfoHash().String())
-			torrentclient.StopAllFileDownload(torrent.Torrent.Files())
-			torrent.Torrent.Drop()
-			delete(torrentclient.ActiveTorrents, torrent.Torrent.InfoHash().String())
-		}
-
 		torrentclient.StopTorrentClient()
 
 		*settings.DownloadRate = downrate

@@ -16,9 +16,9 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:     "raven-torrent",
-		Width:     1024,
-		Height:    768,
+		Title:     "Black Raven",
+		Width:     1280,
+		Height:    720,
 		Assets:    assets,
 		OnStartup: app.startup,
 		Bind: []interface{}{
