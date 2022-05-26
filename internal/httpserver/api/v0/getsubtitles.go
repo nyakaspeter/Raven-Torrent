@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -14,22 +13,11 @@ import (
 	"github.com/nyakaspeter/raven-torrent/internal/torrentclient"
 	"github.com/nyakaspeter/raven-torrent/pkg/subtitles"
 	subtitlestypes "github.com/nyakaspeter/raven-torrent/pkg/subtitles/types"
-	"github.com/oz/osdb"
 )
 
-type SubtitleFilesResponse struct {
-	Lang         string `json:"lang"`
-	SubtitleName string `json:"subtitlename"`
-	ReleaseName  string `json:"releasename"`
-	SubFormat    string `json:"subformat"`
-	SubEncoding  string `json:"subencoding"`
-	SubData      string `json:"subdata"`
-	VttData      string `json:"vttdata"`
-}
-
 type SubtitleFilesResultsResponse struct {
-	Success bool                    `json:"success"`
-	Results []SubtitleFilesResponse `json:"results"`
+	Success bool                          `json:"success"`
+	Results []subtitlestypes.SubtitleFile `json:"results"`
 }
 
 // @Router /subtitlesbyimdb/{imdb}/lang/{lang}/season/{season}/episode/{episode} [get]
@@ -61,7 +49,7 @@ func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
 
 		langs := strings.Split(vars["lang"], ",")
 
-		var output []osdb.Subtitle
+		var output []subtitlestypes.SubtitleFile
 		if season == 0 && episode == 0 {
 			params := subtitlestypes.MediaParams{}
 			params.ImdbId = vars["imdb"]
@@ -81,7 +69,7 @@ func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Println("Subtitle found.")
-		io.WriteString(w, subtitleFilesList(r.Host, output, langs[0]))
+		io.WriteString(w, subtitleFilesListResponse(output))
 	}
 }
 
@@ -114,7 +102,7 @@ func GetSubtitlesByText() func(w http.ResponseWriter, r *http.Request) {
 
 		langs := strings.Split(vars["lang"], ",")
 
-		var output []osdb.Subtitle
+		var output []subtitlestypes.SubtitleFile
 		if season == 0 && episode == 0 {
 			params := subtitlestypes.MediaParams{}
 			params.Title = vars["text"]
@@ -134,7 +122,7 @@ func GetSubtitlesByText() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Println("Subtitle found.")
-		io.WriteString(w, subtitleFilesList(r.Host, output, langs[0]))
+		io.WriteString(w, subtitleFilesListResponse(output))
 	}
 }
 
@@ -183,7 +171,7 @@ func GetSubtitlesByFileHash() func(w http.ResponseWriter, r *http.Request) {
 				}
 
 				log.Println("Subtitle found.")
-				io.WriteString(w, subtitleFilesList(r.Host, output, langs[0]))
+				io.WriteString(w, subtitleFilesListResponse(output))
 			} else {
 				http.Error(w, noSubtitlesFound(), http.StatusNotFound)
 				log.Println("Unknown torrent:", vars["hash"])
@@ -208,35 +196,7 @@ func noSubtitlesFound() string {
 	return string(messageString)
 }
 
-func subtitleFilesList(address string, files osdb.Subtitles, lang string) string {
-	sortSubtitleFiles(files, lang)
-
-	var results []SubtitleFilesResponse
-
-	for _, f := range files {
-		if f.SubFormat == "srt" {
-			workSubFileName := strings.ReplaceAll(f.SubFileName, "\"", "")
-			workSubFileName = strings.ReplaceAll(workSubFileName, "\\", "")
-
-			workMovieReleaseName := strings.ReplaceAll(f.MovieReleaseName, "\"", "")
-			workMovieReleaseName = strings.ReplaceAll(workMovieReleaseName, "\\", "")
-
-			baseLink := "http://" + address + "/subtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/" + f.SubEncoding
-
-			result := SubtitleFilesResponse{
-				Lang:         f.ISO639,
-				SubtitleName: workSubFileName,
-				ReleaseName:  workMovieReleaseName,
-				SubFormat:    f.SubFormat,
-				SubEncoding:  f.SubEncoding,
-				SubData:      baseLink + "/srt",
-				VttData:      baseLink + "/vtt",
-			}
-
-			results = append(results, result)
-		}
-	}
-
+func subtitleFilesListResponse(results []subtitlestypes.SubtitleFile) string {
 	message := SubtitleFilesResultsResponse{
 		Success: true,
 		Results: results,
@@ -245,10 +205,4 @@ func subtitleFilesList(address string, files osdb.Subtitles, lang string) string
 	messageString, _ := json.Marshal(message)
 
 	return string(messageString)
-}
-
-func sortSubtitleFiles(files osdb.Subtitles, lang string) {
-	sort.Slice(files, func(i, j int) bool {
-		return files[i].SubLanguageID == lang
-	})
 }

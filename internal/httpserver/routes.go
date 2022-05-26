@@ -11,10 +11,10 @@ import (
 
 const version = "0.6.0"
 
-// @Title           Raven Torrent API
-// @Version         0.6.0
-// @Host      localhost:9000
-// @BasePath  /api/v0
+// @Title Raven Torrent API
+// @Version 0.6.0
+// @Host localhost:9000
+// @BasePath /api/v0
 func routesHandler() http.Handler {
 	router := mux.NewRouter()
 	router.SkipClean(true)

@@ -18,6 +18,16 @@ type SubtitleParams struct {
 	TargetType string `json:"targetType"`
 }
 
+type SubtitleFile struct {
+	Lang         string `json:"lang"`
+	SubtitleName string `json:"subtitlename"`
+	ReleaseName  string `json:"releasename"`
+	SubFormat    string `json:"subformat"`
+	SubEncoding  string `json:"subencoding"`
+	SubData      string `json:"subdata"`
+	VttData      string `json:"vttdata"`
+}
+
 type SubtitleContents struct {
 	Text               string `json:"text"`
 	ContentType        string `json:"contentType"`

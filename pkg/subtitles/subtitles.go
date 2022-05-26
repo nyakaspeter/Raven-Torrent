@@ -4,10 +4,13 @@ import (
 	"archive/zip"
 	"bytes"
 	"crypto/tls"
+	"encoding/base64"
 	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sort"
+	"strconv"
 	"strings"
 
 	subs "github.com/martinlindhe/subtitles"
@@ -17,16 +20,16 @@ import (
 	"github.com/oz/osdb"
 )
 
-func GetSubtitles(movie types.MediaParams, languages []string) []osdb.Subtitle {
+func GetSubtitles(movie types.MediaParams, languages []string) []types.SubtitleFile {
 	c, err := osdb.NewClient()
 	if err != nil {
-		return []osdb.Subtitle{}
+		return []types.SubtitleFile{}
 	}
 
 	c.UserAgent = *settings.OpenSubtitlesUserAgent
 
 	if err = c.LogIn("", "", ""); err != nil {
-		return []osdb.Subtitle{}
+		return []types.SubtitleFile{}
 	}
 
 	// Fallback language always English
@@ -74,7 +77,7 @@ func GetSubtitles(movie types.MediaParams, languages []string) []osdb.Subtitle {
 
 	res, err := c.SearchSubtitles(&params)
 	if err != nil {
-		return []osdb.Subtitle{}
+		return []types.SubtitleFile{}
 	}
 
 	foundSrt := false
@@ -86,22 +89,22 @@ func GetSubtitles(movie types.MediaParams, languages []string) []osdb.Subtitle {
 	}
 
 	if !foundSrt {
-		return []osdb.Subtitle{}
+		return []types.SubtitleFile{}
 	}
 
-	return res
+	return subtitleFilesList(res, languages[0])
 }
 
-func GetSubtitlesForEpisode(show types.MediaParams, episode types.EpisodeParams, languages []string) []osdb.Subtitle {
+func GetSubtitlesForEpisode(show types.MediaParams, episode types.EpisodeParams, languages []string) []types.SubtitleFile {
 	c, err := osdb.NewClient()
 	if err != nil {
-		return []osdb.Subtitle{}
+		return []types.SubtitleFile{}
 	}
 
 	c.UserAgent = *settings.OpenSubtitlesUserAgent
 
 	if err = c.LogIn("", "", ""); err != nil {
-		return []osdb.Subtitle{}
+		return []types.SubtitleFile{}
 	}
 
 	// Fallback language always English
@@ -144,7 +147,7 @@ func GetSubtitlesForEpisode(show types.MediaParams, episode types.EpisodeParams,
 
 	res, err := c.SearchSubtitles(&params)
 	if err != nil {
-		return []osdb.Subtitle{}
+		return []types.SubtitleFile{}
 	}
 
 	foundSrt := false
@@ -156,10 +159,10 @@ func GetSubtitlesForEpisode(show types.MediaParams, episode types.EpisodeParams,
 	}
 
 	if !foundSrt {
-		return []osdb.Subtitle{}
+		return []types.SubtitleFile{}
 	}
 
-	return res
+	return subtitleFilesList(res, languages[0])
 }
 
 func GetSubtitleContents(params types.SubtitleParams) types.SubtitleContents {
@@ -246,4 +249,42 @@ func fetchZip(zipurl string, useragent string) (*zip.Reader, error) {
 
 	b := bytes.NewReader(buf.Bytes())
 	return zip.NewReader(b, int64(b.Len()))
+}
+
+func subtitleFilesList(files osdb.Subtitles, firstLanguage string) []types.SubtitleFile {
+	sortSubtitleFiles(files, firstLanguage)
+
+	var results []types.SubtitleFile
+
+	for _, f := range files {
+		if f.SubFormat == "srt" {
+			workSubFileName := strings.ReplaceAll(f.SubFileName, "\"", "")
+			workSubFileName = strings.ReplaceAll(workSubFileName, "\\", "")
+
+			workMovieReleaseName := strings.ReplaceAll(f.MovieReleaseName, "\"", "")
+			workMovieReleaseName = strings.ReplaceAll(workMovieReleaseName, "\\", "")
+
+			baseLink := "http://" + utils.GetLocalIP() + ":" + strconv.Itoa(*settings.Port) + "/subtitle/" + base64.URLEncoding.EncodeToString([]byte(f.ZipDownloadLink)) + "/" + f.SubEncoding
+
+			result := types.SubtitleFile{
+				Lang:         f.ISO639,
+				SubtitleName: workSubFileName,
+				ReleaseName:  workMovieReleaseName,
+				SubFormat:    f.SubFormat,
+				SubEncoding:  f.SubEncoding,
+				SubData:      baseLink + "/srt",
+				VttData:      baseLink + "/vtt",
+			}
+
+			results = append(results, result)
+		}
+	}
+
+	return results
+}
+
+func sortSubtitleFiles(files osdb.Subtitles, lang string) {
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].SubLanguageID == lang
+	})
 }

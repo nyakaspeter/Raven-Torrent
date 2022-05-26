@@ -17,7 +17,6 @@ import (
 	subtitlestypes "github.com/nyakaspeter/raven-torrent/pkg/subtitles/types"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents"
 	torrentstypes "github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
-	"github.com/oz/osdb"
 )
 
 // App struct
@@ -88,11 +87,11 @@ func (a *App) GetActiveTorrents() []torrentclienttypes.TorrentInfo {
 	return torrentclient.GetActiveTorrents()
 }
 
-func (a *App) GetSubtitles(movie subtitlestypes.MediaParams, languages []string) []osdb.Subtitle {
+func (a *App) GetSubtitles(movie subtitlestypes.MediaParams, languages []string) []subtitlestypes.SubtitleFile {
 	return subtitles.GetSubtitles(movie, languages)
 }
 
-func (a *App) GetSubtitlesForEpisode(movie subtitlestypes.MediaParams, episode subtitlestypes.EpisodeParams, languages []string) []osdb.Subtitle {
+func (a *App) GetSubtitlesForEpisode(movie subtitlestypes.MediaParams, episode subtitlestypes.EpisodeParams, languages []string) []subtitlestypes.SubtitleFile {
 	return subtitles.GetSubtitlesForEpisode(movie, episode, languages)
 }
 
