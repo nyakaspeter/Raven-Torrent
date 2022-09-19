@@ -1,0 +1,3 @@
+.MuiAccordion-root:before {
+  height: 0 !important;
+}
