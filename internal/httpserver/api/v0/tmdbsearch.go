@@ -22,7 +22,8 @@ import (
 func SearchMovies() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TMDB search")
+
+		log.Println("Searching movies:", vars)
 
 		page, err := strconv.Atoi(vars["page"])
 		if err != nil {
@@ -52,7 +53,8 @@ func SearchMovies() func(w http.ResponseWriter, r *http.Request) {
 func SearchShows() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TMDB search")
+
+		log.Println("Searching shows:", vars)
 
 		page, err := strconv.Atoi(vars["page"])
 		if err != nil {

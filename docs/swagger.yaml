@@ -1,16 +1,5 @@
 basePath: /api/v0
 definitions:
-  types.Collection:
-    properties:
-      backdrop_path:
-        type: string
-      id:
-        type: integer
-      name:
-        type: string
-      poster_path:
-        type: string
-    type: object
   types.Company:
     properties:
       id:
@@ -163,10 +152,6 @@ definitions:
         type: boolean
       backdrop_path:
         type: string
-      belongs_to_collection:
-        items:
-          $ref: '#/definitions/types.Collection'
-        type: array
       budget:
         type: integer
       genres:
@@ -190,6 +175,7 @@ definitions:
       poster_path:
         type: string
       production_companies:
+        description: Collections         []Collection `json:"belongs_to_collection"`
         items:
           $ref: '#/definitions/types.Company'
         type: array
@@ -435,6 +421,23 @@ definitions:
       torrent:
         type: string
     type: object
+  types.SubtitleFile:
+    properties:
+      lang:
+        type: string
+      releasename:
+        type: string
+      subdata:
+        type: string
+      subencoding:
+        type: string
+      subformat:
+        type: string
+      subtitlename:
+        type: string
+      vttdata:
+        type: string
+    type: object
   types.TorrentFile:
     properties:
       length:
@@ -458,10 +461,10 @@ definitions:
         type: integer
       image:
         $ref: '#/definitions/types.EpisodeImages'
-      inumberd:
-        type: integer
       name:
         type: string
+      number:
+        type: integer
       runtime:
         type: integer
       season:
@@ -516,35 +519,18 @@ definitions:
       success:
         type: boolean
     type: object
-  v0.SubtitleFilesResponse:
-    properties:
-      lang:
-        type: string
-      releasename:
-        type: string
-      subdata:
-        type: string
-      subencoding:
-        type: string
-      subformat:
-        type: string
-      subtitlename:
-        type: string
-      vttdata:
-        type: string
-    type: object
   v0.SubtitleFilesResultsResponse:
     properties:
       results:
         items:
-          $ref: '#/definitions/v0.SubtitleFilesResponse'
+          $ref: '#/definitions/types.SubtitleFile'
         type: array
       success:
         type: boolean
     type: object
   v0.TmdbMovieInfoResponse:
     properties:
-      results:
+      result:
         $ref: '#/definitions/types.MovieInfo'
       success:
         type: boolean
@@ -558,7 +544,7 @@ definitions:
     type: object
   v0.TmdbShowInfoResponse:
     properties:
-      results:
+      result:
         $ref: '#/definitions/types.ShowInfo'
       success:
         type: boolean

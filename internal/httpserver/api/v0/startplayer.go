@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,6 +23,8 @@ import (
 func StartMediaPlayer() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
+
+		log.Println("Starting media player:", vars)
 
 		path, err := base64.StdEncoding.DecodeString(vars["base64path"])
 		if err != nil {
@@ -56,6 +59,8 @@ func failedToOpenMediaPlayer() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("Failed to open media player.")
 
 	return string(messageString)
 }

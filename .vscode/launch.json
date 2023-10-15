@@ -10,6 +10,9 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/api",
+      "env": {
+        "CGO_ENABLED": "0"
+      },
       "args": [
         "-log",
         "-swagger",
@@ -29,13 +32,16 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/api",
+      "env": {
+        "CGO_ENABLED": "0"
+      },
       "args": [
         "-log",
         "-swagger",
         "-memorysize",
         "64",
         "-jackettaddress",
-        "http://192.168.0.2:9117",
+        "http://192.168.0.10:9117",
         "-jackettkey",
         "e1mraldyss0sp70gkk7pdf2yxlibg1gl"
       ]
@@ -46,13 +52,16 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/api",
+      "env": {
+        "CGO_ENABLED": "0"
+      },
       "args": [
         "-log",
         "-swagger",
         "-memorysize",
         "128",
         "-jackettaddress",
-        "http://192.168.0.2:9117",
+        "http://192.168.0.10:9117",
         "-jackettkey",
         "e1mraldyss0sp70gkk7pdf2yxlibg1gl"
       ]

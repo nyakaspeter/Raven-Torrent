@@ -14,12 +14,12 @@ import (
 
 type TmdbMovieInfoResponse struct {
 	Success bool                     `json:"success"`
-	Result  mediainfotypes.MovieInfo `json:"results"`
+	Result  mediainfotypes.MovieInfo `json:"result"`
 }
 
 type TmdbShowInfoResponse struct {
 	Success bool                    `json:"success"`
-	Result  mediainfotypes.ShowInfo `json:"results"`
+	Result  mediainfotypes.ShowInfo `json:"result"`
 }
 
 // @Router /tmdbinfo/type/movie/tmdbid/{tmdbid}/lang/{lang} [get]
@@ -33,7 +33,7 @@ type TmdbShowInfoResponse struct {
 func GetMovieInfo() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TMDB info")
+		log.Println("Fetching movie info:", vars)
 
 		tmdbid, err := strconv.Atoi(vars["tmdbid"])
 		if err != nil {
@@ -62,7 +62,7 @@ func GetMovieInfo() func(w http.ResponseWriter, r *http.Request) {
 func GetShowInfo() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TMDB info")
+		log.Println("Fetching show info:", vars)
 
 		tmdbid, err := strconv.Atoi(vars["tmdbid"])
 		if err != nil {
@@ -86,6 +86,8 @@ func movieInfo(result mediainfotypes.MovieInfo) string {
 		Result:  result,
 	}
 
+	log.Println("Returning movie info.")
+
 	json, _ := json.Marshal(response)
 	return string(json)
 }
@@ -95,6 +97,8 @@ func showInfo(result mediainfotypes.ShowInfo) string {
 		Success: true,
 		Result:  result,
 	}
+
+	log.Println("Returning show info.")
 
 	json, _ := json.Marshal(response)
 	return string(json)

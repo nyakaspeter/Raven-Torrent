@@ -29,10 +29,11 @@ type TorrentListResultsResponse struct {
 // @Failure 404 {object} MessageResponse
 func GetActiveTorrents() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Fetching active torrents.")
+
 		at := torrentclient.GetActiveTorrents()
 
 		if len(at) == 0 {
-			log.Println("No active torrents found.")
 			http.Error(w, noActiveTorrentsFound(), http.StatusNotFound)
 			return
 		}
@@ -60,6 +61,21 @@ func activeTorrentsList(at []types.TorrentInfo) string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("Found", len(results), "active torrents.")
+
+	return string(messageString)
+}
+
+func torrentNotFound() string {
+	message := MessageResponse{
+		Success: false,
+		Message: "Torrent not found.",
+	}
+
+	messageString, _ := json.Marshal(message)
+
+	log.Println("Torrent not found.")
 
 	return string(messageString)
 }

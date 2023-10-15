@@ -25,6 +25,8 @@ func RestartTorrentClient(quitSignal chan os.Signal) func(w http.ResponseWriter,
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
+		log.Println("Restarting torrent client:", vars)
+
 		downrate, err := strconv.Atoi(vars["downrate"])
 		if err != nil {
 			http.Error(w, failedToSetLimits(), http.StatusBadRequest)
@@ -46,7 +48,6 @@ func RestartTorrentClient(quitSignal chan os.Signal) func(w http.ResponseWriter,
 			quitSignal <- os.Kill
 		}
 
-		log.Println("Restarted torrent client.")
 		io.WriteString(w, torrentClientRestarted())
 	}
 }
@@ -59,6 +60,8 @@ func torrentClientRestarted() string {
 
 	messageString, _ := json.Marshal(message)
 
+	log.Println("Restarted torrent client.")
+
 	return string(messageString)
 }
 
@@ -69,6 +72,8 @@ func failedToSetLimits() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("Failed to set speed limits.")
 
 	return string(messageString)
 }

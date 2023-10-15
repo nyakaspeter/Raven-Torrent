@@ -50,7 +50,6 @@ func addTorrentFromUri(uri string) *torrent.Torrent {
 	}
 
 	if err != nil {
-		log.Println(err)
 		return nil
 	}
 

@@ -30,15 +30,15 @@ type MovieMagnetLinksResponse struct {
 func GetMovieTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Printf("Getting movie magnet link by this imdb id: %v\n", vars["imdb"])
+
+		log.Println("Searching torrents:", vars)
 
 		output := torrents.GetMovieTorrents(getMovieParams(vars["imdb"], ""), getSourceParams(vars["providers"]))
 		if len(output) > 0 {
 			io.WriteString(w, movieTorrentsList(output))
-			log.Printf("Magnet link found.\n")
+
 		} else {
 			http.Error(w, noMovieTorrentsFound(), http.StatusNotFound)
-			log.Printf("Not found any magnet link.\n")
 		}
 	}
 }
@@ -54,15 +54,14 @@ func GetMovieTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 func GetMovieTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Printf("Getting movie magnet link by this query: %v\n", vars["query"])
+
+		log.Println("Searching torrents:", vars)
 
 		output := torrents.GetMovieTorrents(getMovieParams("", vars["query"]), getSourceParams(vars["providers"]))
 		if len(output) > 0 {
 			io.WriteString(w, movieTorrentsList(output))
-			log.Printf("Magnet link found.\n")
 		} else {
 			http.Error(w, noMovieTorrentsFound(), http.StatusNotFound)
-			log.Printf("Not found any magnet link.\n")
 		}
 	}
 }
@@ -79,15 +78,14 @@ func GetMovieTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 func GetMovieTorrentsByImdbAndQuery() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Printf("Getting movie magnet link by this imdb id: %v, query: %v\n", vars["imdb"], vars["query"])
+
+		log.Println("Searching torrents:", vars)
 
 		output := torrents.GetMovieTorrents(getMovieParams(vars["imdb"], vars["query"]), getSourceParams(vars["providers"]))
 		if len(output) > 0 {
 			io.WriteString(w, movieTorrentsList(output))
-			log.Printf("Magnet link found.\n")
 		} else {
 			http.Error(w, noMovieTorrentsFound(), http.StatusNotFound)
-			log.Printf("Not found any magnet link.\n")
 		}
 	}
 }
@@ -126,12 +124,8 @@ func getSourceParams(providers string) torrentsTypes.SourceParams {
 				sourceParams.Jackett.Address = sourceArgs[0]
 				sourceParams.Jackett.ApiKey = sourceArgs[1]
 			}
-		case "pt":
-			sourceParams.PopcornTime.Enabled = true
 		case "yts":
 			sourceParams.Yts.Enabled = true
-		case "rarbg":
-			sourceParams.Rarbg.Enabled = true
 		case "itorrent":
 			sourceParams.Itorrent.Enabled = true
 		case "1337x":
@@ -173,6 +167,8 @@ func movieTorrentsList(results []torrentsTypes.MovieTorrent) string {
 
 	messageString, _ := json.Marshal(message)
 
+	log.Println("Found", len(results), "torrents.")
+
 	return string(messageString)
 }
 
@@ -183,6 +179,8 @@ func noMovieTorrentsFound() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("No torrents found.")
 
 	return string(messageString)
 }

@@ -34,12 +34,12 @@ func GetTorrentStats() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
+		log.Println("Fetching torrent stats:", vars)
+
 		if t, ok := torrentclient.ActiveTorrents[vars["hash"]]; ok {
-			log.Println("Check torrent stats:", vars["hash"])
 			io.WriteString(w, downloadStats(r.Host, t.Torrent))
 		} else {
 			http.Error(w, torrentNotFound(), http.StatusNotFound)
-			log.Println("Unknown torrent:", vars["hash"])
 		}
 	}
 }
@@ -78,6 +78,8 @@ func downloadStats(address string, torr *torrent.Torrent) string {
 
 	// Wait 3 second because Long Polling
 	time.Sleep(3 * time.Second)
+
+	log.Println("Returning torrent stats.")
 
 	return string(messageString)
 }

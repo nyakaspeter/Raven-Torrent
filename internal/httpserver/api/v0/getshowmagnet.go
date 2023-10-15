@@ -30,15 +30,14 @@ type ShowMagnetLinksResponse struct {
 func GetShowTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Printf("Getting tv show magnet link by this imdb id: %v, season: %v, episode: %v\n", vars["imdb"], vars["season"], vars["episode"])
+
+		log.Println("Searching torrents:", vars)
 
 		output := torrents.GetShowTorrents(getShowParams(vars["imdb"], "", vars["season"], vars["episode"]), getSourceParams(vars["providers"]))
 		if len(output) > 0 {
 			io.WriteString(w, showTorrentsList(output))
-			log.Printf("Magnet link found.\n")
 		} else {
 			http.Error(w, noShowTorrentsFound(), http.StatusNotFound)
-			log.Printf("Not found any magnet link.\n")
 		}
 	}
 }
@@ -56,15 +55,14 @@ func GetShowTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 func GetShowTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Printf("Getting tv show magnet link by this query: %v, season: %v, episode: %v\n", vars["query"], vars["season"], vars["episode"])
+
+		log.Println("Searching torrents:", vars)
 
 		output := torrents.GetShowTorrents(getShowParams("", vars["query"], vars["season"], vars["episode"]), getSourceParams(vars["providers"]))
 		if len(output) > 0 {
 			io.WriteString(w, showTorrentsList(output))
-			log.Printf("Magnet link found.\n")
 		} else {
 			http.Error(w, noShowTorrentsFound(), http.StatusNotFound)
-			log.Printf("Not found any magnet link.\n")
 		}
 	}
 }
@@ -83,15 +81,14 @@ func GetShowTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 func GetShowTorrentsByImdbAndQuery() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Printf("Getting tv show magnet link by this imdb id: %v, query: %v, season: %v, episode: %v\n", vars["imdb"], vars["query"], vars["season"], vars["episode"])
+
+		log.Println("Searching torrents:", vars)
 
 		output := torrents.GetShowTorrents(getShowParams(vars["imdb"], vars["query"], vars["season"], vars["episode"]), getSourceParams(vars["providers"]))
 		if len(output) > 0 {
 			io.WriteString(w, showTorrentsList(output))
-			log.Printf("Magnet link found.\n")
 		} else {
 			http.Error(w, noShowTorrentsFound(), http.StatusNotFound)
-			log.Printf("Not found any magnet link.\n")
 		}
 	}
 }
@@ -122,6 +119,8 @@ func showTorrentsList(results []torrentsTypes.ShowTorrent) string {
 
 	messageString, _ := json.Marshal(message)
 
+	log.Println("Found", len(results), "torrents.")
+
 	return string(messageString)
 }
 
@@ -132,6 +131,8 @@ func noShowTorrentsFound() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("No torrents found.")
 
 	return string(messageString)
 }

@@ -1140,23 +1140,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "types.Collection": {
-            "type": "object",
-            "properties": {
-                "backdrop_path": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "poster_path": {
-                    "type": "string"
-                }
-            }
-        },
         "types.Company": {
             "type": "object",
             "properties": {
@@ -1391,12 +1374,6 @@ const docTemplate = `{
                 "backdrop_path": {
                     "type": "string"
                 },
-                "belongs_to_collection": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.Collection"
-                    }
-                },
                 "budget": {
                     "type": "integer"
                 },
@@ -1431,6 +1408,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "production_companies": {
+                    "description": "Collections         []Collection ` + "`" + `json:\"belongs_to_collection\"` + "`" + `",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/types.Company"
@@ -1803,6 +1781,32 @@ const docTemplate = `{
                 }
             }
         },
+        "types.SubtitleFile": {
+            "type": "object",
+            "properties": {
+                "lang": {
+                    "type": "string"
+                },
+                "releasename": {
+                    "type": "string"
+                },
+                "subdata": {
+                    "type": "string"
+                },
+                "subencoding": {
+                    "type": "string"
+                },
+                "subformat": {
+                    "type": "string"
+                },
+                "subtitlename": {
+                    "type": "string"
+                },
+                "vttdata": {
+                    "type": "string"
+                }
+            }
+        },
         "types.TorrentFile": {
             "type": "object",
             "properties": {
@@ -1838,11 +1842,11 @@ const docTemplate = `{
                 "image": {
                     "$ref": "#/definitions/types.EpisodeImages"
                 },
-                "inumberd": {
-                    "type": "integer"
-                },
                 "name": {
                     "type": "string"
+                },
+                "number": {
+                    "type": "integer"
                 },
                 "runtime": {
                     "type": "integer"
@@ -1928,39 +1932,13 @@ const docTemplate = `{
                 }
             }
         },
-        "v0.SubtitleFilesResponse": {
-            "type": "object",
-            "properties": {
-                "lang": {
-                    "type": "string"
-                },
-                "releasename": {
-                    "type": "string"
-                },
-                "subdata": {
-                    "type": "string"
-                },
-                "subencoding": {
-                    "type": "string"
-                },
-                "subformat": {
-                    "type": "string"
-                },
-                "subtitlename": {
-                    "type": "string"
-                },
-                "vttdata": {
-                    "type": "string"
-                }
-            }
-        },
         "v0.SubtitleFilesResultsResponse": {
             "type": "object",
             "properties": {
                 "results": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/v0.SubtitleFilesResponse"
+                        "$ref": "#/definitions/types.SubtitleFile"
                     }
                 },
                 "success": {
@@ -1971,7 +1949,7 @@ const docTemplate = `{
         "v0.TmdbMovieInfoResponse": {
             "type": "object",
             "properties": {
-                "results": {
+                "result": {
                     "$ref": "#/definitions/types.MovieInfo"
                 },
                 "success": {
@@ -1993,7 +1971,7 @@ const docTemplate = `{
         "v0.TmdbShowInfoResponse": {
             "type": "object",
             "properties": {
-                "results": {
+                "result": {
                     "$ref": "#/definitions/types.ShowInfo"
                 },
                 "success": {

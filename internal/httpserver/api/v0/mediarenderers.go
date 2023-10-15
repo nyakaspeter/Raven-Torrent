@@ -23,16 +23,15 @@ type MediaRenderersResponse struct {
 // @Failure 404 {object} MessageResponse
 func GetMediaRenderers() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Looking for media renderers...")
+		log.Println("Looking for media renderers")
+
 		devices := dlnacast.GetMediaDevices()
 
 		if len(devices) == 0 {
-			log.Println("No media renderers found.")
 			http.Error(w, noMediaRenderersFound(), http.StatusNotFound)
 			return
 		}
 
-		log.Println("Media renderers found.")
 		io.WriteString(w, mediaRenderersList(devices))
 	}
 }
@@ -45,6 +44,8 @@ func mediaRenderersList(renderers []dlnacasttypes.MediaDevice) string {
 
 	messageString, _ := json.Marshal(message)
 
+	log.Println("Found", len(renderers), "media renderers.")
+
 	return string(messageString)
 }
 
@@ -55,6 +56,8 @@ func noMediaRenderersFound() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("No media renderers found.")
 
 	return string(messageString)
 }

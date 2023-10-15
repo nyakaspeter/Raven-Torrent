@@ -3,6 +3,7 @@ package v0
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"os"
 )
@@ -26,6 +27,8 @@ func serverStopping() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("Stopping server.")
 
 	return string(messageString)
 }

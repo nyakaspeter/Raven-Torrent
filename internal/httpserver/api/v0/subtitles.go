@@ -33,7 +33,8 @@ type SubtitleFilesResultsResponse struct {
 func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Search subtitle by imdbid...")
+
+		log.Println("Searching subtitles:", vars)
 
 		season, err := strconv.ParseInt(vars["season"], 10, 64)
 		if err != nil {
@@ -68,7 +69,6 @@ func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Println("Subtitle found.")
 		io.WriteString(w, subtitleFilesListResponse(output))
 	}
 }
@@ -86,7 +86,8 @@ func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
 func GetSubtitlesByText() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Search subtitle by text...")
+
+		log.Println("Searching subtitles:", vars)
 
 		season, err := strconv.ParseInt(vars["season"], 10, 64)
 		if err != nil {
@@ -121,7 +122,6 @@ func GetSubtitlesByText() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Println("Subtitle found.")
 		io.WriteString(w, subtitleFilesListResponse(output))
 	}
 }
@@ -139,19 +139,19 @@ func GetSubtitlesByFileHash() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
+		log.Println("Searching subtitles:", vars)
+
 		if d, err := base64.StdEncoding.DecodeString(vars["base64path"]); err == nil {
 			if t, ok := torrentclient.ActiveTorrents[vars["hash"]]; ok {
 				idx := torrentclient.GetFileIndexByPath(string(d), t.Torrent.Files())
 				file := t.Torrent.Files()[idx]
 
 				path := file.DisplayPath()
-				log.Println("Calculate Opensubtitles hash...")
 
 				torrentclient.IncreaseConnections(path, t)
 
 				fileSize := file.Length()
 				fileHash := torrentclient.CalculateOpensubtitlesHash(file)
-				log.Println("Opensubtitles hash calculated:", fileHash)
 
 				//stop downloading the file when no connections left
 				if torrentclient.DecreaseConnections(path, t) <= 0 {
@@ -170,16 +170,13 @@ func GetSubtitlesByFileHash() func(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				log.Println("Subtitle found.")
 				io.WriteString(w, subtitleFilesListResponse(output))
 			} else {
 				http.Error(w, noSubtitlesFound(), http.StatusNotFound)
-				log.Println("Unknown torrent:", vars["hash"])
 				return
 			}
 		} else {
 			http.Error(w, noSubtitlesFound(), http.StatusNotFound)
-			log.Println(err)
 			return
 		}
 	}
@@ -193,6 +190,8 @@ func noSubtitlesFound() string {
 
 	messageString, _ := json.Marshal(message)
 
+	log.Println("No subtitles found.")
+
 	return string(messageString)
 }
 
@@ -203,6 +202,8 @@ func subtitleFilesListResponse(results []subtitlestypes.SubtitleFile) string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("Found", len(results), "subtitles.")
 
 	return string(messageString)
 }

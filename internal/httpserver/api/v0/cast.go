@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -23,6 +24,8 @@ import (
 func CastTorrentFile() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
+
+		log.Println("Casting to device:", vars)
 
 		media := dlnacasttypes.MediaParams{}
 		media.Title = "video"
@@ -79,6 +82,8 @@ func failedCastingToDevice() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("Casting to device failed.")
 
 	return string(messageString)
 }

@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/nyakaspeter/raven-torrent/internal/torrentclient"
@@ -29,6 +28,9 @@ type TorrentFilesResultsResponse struct {
 func AddTorrent() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
+
+		log.Println("Adding torrent:", vars)
+
 		base64uri := vars["base64uri"]
 
 		uri, err := base64.StdEncoding.DecodeString(base64uri)
@@ -38,21 +40,14 @@ func AddTorrent() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		for tryCount := 0; tryCount < 4; tryCount++ {
-			if tryCount > 0 {
-				time.Sleep(10 * time.Second)
-			}
+		t := torrentclient.AddTorrent(string(uri))
 
-			t := torrentclient.AddTorrent(string(uri))
-
-			if t.Hash == "" || len(t.Files) == 0 {
-				http.Error(w, failedToAddTorrent(), http.StatusNotFound)
-				return
-			}
-
-			log.Println("Added torrent:", t.Hash)
-			io.WriteString(w, torrentFilesList(t.Hash, t.Files))
+		if t.Hash == "" || len(t.Files) == 0 {
+			http.Error(w, failedToAddTorrent(), http.StatusNotFound)
+			return
 		}
+
+		io.WriteString(w, torrentFilesList(t.Hash, t.Files))
 	}
 }
 
@@ -65,6 +60,8 @@ func torrentFilesList(infohash string, files []torrentclienttypes.TorrentFile) s
 
 	messageString, _ := json.Marshal(message)
 
+	log.Println("Added torrent with", len(files), "files.")
+
 	return string(messageString)
 }
 
@@ -75,6 +72,8 @@ func failedToAddTorrent() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("Failed to add torrent.")
 
 	return string(messageString)
 }

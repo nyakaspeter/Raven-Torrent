@@ -2,8 +2,14 @@ package v0
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
+
+type MessageResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
 
 func NotFound() http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +24,19 @@ func resourceNotFound() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	return string(messageString)
+}
+
+func successMessage() string {
+	message := MessageResponse{
+		Success: true,
+		Message: "OK",
+	}
+
+	messageString, _ := json.Marshal(message)
+
+	log.Println("Success.")
 
 	return string(messageString)
 }

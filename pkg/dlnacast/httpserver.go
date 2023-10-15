@@ -99,13 +99,13 @@ func (payload *TVPayload) callbackHandler(w http.ResponseWriter, req *http.Reque
 	parsedURLtransport, err := url.Parse(payload.TransportURL)
 	if err == nil {
 		if newstate == "PLAYING" {
-			log.Printf(payload.VideoTitle + " playback started on " + parsedURLtransport.Hostname())
+			log.Println(payload.VideoTitle + " playback started on " + parsedURLtransport.Hostname())
 		}
 		if newstate == "PAUSED_PLAYBACK" {
-			log.Printf(payload.VideoTitle + " playback paused on " + parsedURLtransport.Hostname())
+			log.Println(payload.VideoTitle + " playback paused on " + parsedURLtransport.Hostname())
 		}
 		if newstate == "STOPPED" {
-			log.Printf(payload.VideoTitle + " playback stopped on " + parsedURLtransport.Hostname())
+			log.Println(payload.VideoTitle + " playback stopped on " + parsedURLtransport.Hostname())
 			payload.UnsubscribeSoapCall(uuid)
 		}
 	}

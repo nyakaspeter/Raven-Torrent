@@ -26,7 +26,7 @@ type ShowEpisodesResponse struct {
 func GetShowEpisodesByImdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TVMaze episodes")
+		log.Println("Fetching show episodes:", vars)
 
 		showIds := mediainfotypes.ShowIds{}
 		showIds.ImdbId = vars["imdb"]
@@ -51,7 +51,7 @@ func GetShowEpisodesByImdb() func(w http.ResponseWriter, r *http.Request) {
 func GetShowEpisodesByTvdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TVMaze episodes")
+		log.Println("Fetching show episodes:", vars)
 
 		showIds := mediainfotypes.ShowIds{}
 		showIds.TvdbId = vars["tvdb"]
@@ -77,7 +77,8 @@ func GetShowEpisodesByTvdb() func(w http.ResponseWriter, r *http.Request) {
 func GetShowEpisodesByImdbAndTvdb() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TVMaze episodes")
+
+		log.Println("Fetching show episodes:", vars)
 
 		showIds := mediainfotypes.ShowIds{}
 		showIds.ImdbId = vars["imdb"]
@@ -99,6 +100,8 @@ func showEpisodeList(episodes []mediainfotypes.TvMazeEpisode) string {
 		Results: episodes,
 	}
 
+	log.Println("Found", len(episodes), "episodes.")
+
 	json, _ := json.Marshal(response)
 	return string(json)
 }
@@ -110,6 +113,8 @@ func noTvMazeDataFound() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("No TVMaze data found.")
 
 	return string(messageString)
 }

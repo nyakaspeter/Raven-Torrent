@@ -87,7 +87,7 @@ func main() {
 }
 
 func quit() {
-	log.Println("Quitting")
+	log.Println("Quitting.")
 	httpserver.StopHttpServer()
 	torrentclient.StopTorrentClient()
 }

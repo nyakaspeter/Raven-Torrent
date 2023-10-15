@@ -3,6 +3,7 @@ package v0
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -24,6 +25,8 @@ func serverInfo(version string) string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("Returning server info.")
 
 	return string(messageString)
 }

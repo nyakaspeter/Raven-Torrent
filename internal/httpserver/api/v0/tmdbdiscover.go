@@ -37,7 +37,7 @@ type TmdbShowResultsResponse struct {
 func DiscoverMovies() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TMDB list by genre")
+		log.Println("Fetching movie list:", vars)
 
 		page, err := strconv.Atoi(vars["page"])
 		if err != nil {
@@ -84,7 +84,7 @@ func DiscoverMovies() func(w http.ResponseWriter, r *http.Request) {
 func DiscoverShows() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		log.Println("Get TMDB list by genre")
+		log.Println("Fetching show list:", vars)
 
 		page, err := strconv.Atoi(vars["page"])
 		if err != nil {
@@ -135,6 +135,8 @@ func movieResultsList(results mediainfotypes.MovieResults) string {
 		Results: results,
 	}
 
+	log.Println("Found", len(results.Results), "movies.")
+
 	json, _ := json.Marshal(response)
 	return string(json)
 }
@@ -144,6 +146,8 @@ func showResultsList(results mediainfotypes.ShowResults) string {
 		Success: true,
 		Results: results,
 	}
+
+	log.Println("Found", len(results.Results), "shows.")
 
 	json, _ := json.Marshal(response)
 	return string(json)
@@ -156,6 +160,8 @@ func noTmdbDataFound() string {
 	}
 
 	messageString, _ := json.Marshal(message)
+
+	log.Println("No TMDB data found.")
 
 	return string(messageString)
 }

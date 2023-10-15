@@ -8,8 +8,6 @@ import (
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/eztv"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/itorrent"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/jackett"
-	"github.com/nyakaspeter/raven-torrent/pkg/torrents/pt"
-	"github.com/nyakaspeter/raven-torrent/pkg/torrents/rarbg"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/types"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/x1337x"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/yts"
@@ -33,16 +31,8 @@ func GetMovieTorrents(movie types.MovieParams, sources types.SourceParams) []typ
 			go jackett.GetMovieTorrentsByImdbId(movie.ImdbId, sources.Jackett.Address, sources.Jackett.ApiKey, ch)
 			count++
 		}
-		if sources.PopcornTime.Enabled {
-			go pt.GetMovieTorrentsByImdbId(movie.ImdbId, ch)
-			count++
-		}
 		if sources.Yts.Enabled {
 			go yts.GetMovieTorrentsByImdbId(movie.ImdbId, ch)
-			count++
-		}
-		if sources.Rarbg.Enabled {
-			go rarbg.GetMovieTorrentsByImdbId(movie.ImdbId, ch)
 			count++
 		}
 		if sources.Itorrent.Enabled {
@@ -101,16 +91,8 @@ func GetShowTorrents(show types.ShowParams, sources types.SourceParams) []types.
 			go jackett.GetShowTorrentsByImdbId(show.ImdbId, show.Season, show.Episode, sources.Jackett.Address, sources.Jackett.ApiKey, ch)
 			count++
 		}
-		if sources.PopcornTime.Enabled {
-			go pt.GetShowTorrentsByImdbId(show.ImdbId, show.Season, show.Episode, ch)
-			count++
-		}
 		if sources.Eztv.Enabled {
 			go eztv.GetShowTorrentsByImdbId(show.ImdbId, show.Season, show.Episode, ch)
-			count++
-		}
-		if sources.Rarbg.Enabled {
-			go rarbg.GetShowTorrentsByImdbId(show.ImdbId, show.Season, show.Episode, ch)
 			count++
 		}
 		if sources.Itorrent.Enabled {
