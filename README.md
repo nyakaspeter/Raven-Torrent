@@ -12,7 +12,7 @@ Raven Server is a fork of [White Raven Server](https://github.com/silentmurdock/
 
 API docs for the server are available [here](docs/swagger.md). Swagger UI is also available on the `/swagger` endpoint, if the `-swagger` CLI argument is supplied when launching the server.
 
-### Command-Line Arguments
+### CLI arguments
 
 **-storagetype** `string` select storage type (must be set to "memory" or "file") (`default "memory"`)
 
@@ -50,17 +50,17 @@ API docs for the server are available [here](docs/swagger.md). Swagger UI is als
 
 **-swagger** enable Swagger UI
 
-#### Command-line examples
+### CLI examples
 
-Running the executable file with parameters to serve torrent data from a 512MB memory buffer:
+#### Running the executable file with parameters to serve torrent data from a 512MB memory buffer
 
 `./raven -memorysize=512`
 
-Running the executable file with parameters to serve torrent data from local disk:
+#### Running the executable file with parameters to serve torrent data from local disk
 
 `./raven -storagetype="file" -dir="downloads"`
 
-Running the executable file with parameters to use Jackett for torrent search:
+#### Running the executable file with parameters to use Jackett for torrent search
 
 `./raven -jackettaddress="http://192.168.0.2:9117" -jackettkey="1n53rty0urj4ck3tt4p1k3yh3r3"`
 
@@ -68,33 +68,33 @@ Running the executable file with parameters to use Jackett for torrent search:
 
 You can build the application by running the following commands from the project directory. [Go](https://golang.org/) must be installed for these to work.
 
-Building for Samsung Smart TV E, F, H ARM series:
+#### Building for Samsung Smart TV E, F, H ARM series
 
 `set GOOS=linux`
 `set GOARCH=arm`
 `set GOARM=7`
 `go build -ldflags="-s -w" -o raven`
 
-Building for Windows (x64):
+#### Building for Windows (x64)
 
 `set GOOS=windows`
 `set GOARCH=amd64`
 `set CGO_ENABLED=0`
 `go build -ldflags="-s -w" -o raven.exe`
 
-Building for Windows (x86):
+#### Building for Windows (x86)
 
 `set GOOS=windows`
 `set GOARCH=386`
 `go build -ldflags="-s -w" -o raven.exe`
 
-Building for Linux (x64):
+#### Building for Linux (x64)
 
 `set GOOS=linux`
 `set GOARCH=amd64`
 `go build -ldflags="-s -w" -o raven`
 
-Building for Linux (x86):
+#### Building for Linux (x86)
 
 `set GOOS=linux`
 `set GOARCH=386`
