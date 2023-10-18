@@ -26,8 +26,8 @@ type TmdbShowInfoResponse struct {
 // @Summary Get movie details
 // @Description
 // @Tags Media search
-// @Param tmdbid path string true " "
-// @Param lang path string true " "
+// @Param tmdbid path string true "TMDB id of the movie" example(603)
+// @Param lang path string true "ISO 639-1 two-letter language code" example(en)
 // @Success 200 {object} TmdbMovieInfoResponse
 // @Failure 404 {object} MessageResponse
 func GetMovieInfo() func(w http.ResponseWriter, r *http.Request) {
@@ -55,8 +55,8 @@ func GetMovieInfo() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Get show details
 // @Description
 // @Tags Media search
-// @Param tmdbid path string true " "
-// @Param lang path string true " "
+// @Param tmdbid path string true "TMDB id of the show" example(66732)
+// @Param lang path string true "ISO 639-1 two-letter language code" example(en)
 // @Success 200 {object} TmdbShowInfoResponse
 // @Failure 404 {object} MessageResponse
 func GetShowInfo() func(w http.ResponseWriter, r *http.Request) {

@@ -21,10 +21,10 @@ type ShowMagnetLinksResponse struct {
 // @Summary Get show torrents by IMDB id
 // @Description
 // @Tags Torrent search
-// @Param imdb path string true " "
-// @Param season path int true " "
-// @Param episode path int true " "
-// @Param providers path string true " "
+// @Param imdb path string true "IMDB id of the show" example(tt4574334)
+// @Param season path int true "Season number. Use 0 to search for all seasons" example(1)
+// @Param episode path int true "Episode number. Use 0 to search for all episodes" example(1)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, eztv, 1337x, itorrent" example(jackett,eztv)
 // @Success 200 {object} ShowMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetShowTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
@@ -46,10 +46,10 @@ func GetShowTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Get show torrents by query string
 // @Description
 // @Tags Torrent search
-// @Param query path string true " "
-// @Param season path int true " "
-// @Param episode path int true " "
-// @Param providers path string true " "
+// @Param query path string true "URI encoded query string. Supported parameters: title" example(title=Stranger+Things)
+// @Param season path int true "Season number. Use 0 to search for all seasons" example(1)
+// @Param episode path int true "Episode number. Use 0 to search for all episodes" example(1)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, eztv, 1337x, itorrent" example(jackett,eztv)
 // @Success 200 {object} ShowMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetShowTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
@@ -71,11 +71,11 @@ func GetShowTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Get show torrents by IMDB id and query string
 // @Description
 // @Tags Torrent search
-// @Param imdb path string true " "
-// @Param query path string true " "
-// @Param season path int true " "
-// @Param episode path int true " "
-// @Param providers path string true " "
+// @Param imdb path string true "IMDB id of the show" example(tt4574334)
+// @Param query path string true "URI encoded query string. Supported parameters: title" example(title=Stranger+Things)
+// @Param season path int true "Season number. Use 0 to search for all seasons" example(1)
+// @Param episode path int true "Episode number. Use 0 to search for all episodes" example(1)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, eztv, 1337x, itorrent" example(jackett,eztv)
 // @Success 200 {object} ShowMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetShowTorrentsByImdbAndQuery() func(w http.ResponseWriter, r *http.Request) {

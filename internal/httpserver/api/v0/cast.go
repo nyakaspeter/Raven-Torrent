@@ -17,8 +17,8 @@ import (
 // @Summary Cast media file to TV or media player
 // @Description
 // @Tags Media playback
-// @Param base64location path string true " "
-// @Param base64query path string true " "
+// @Param base64location path string true "Base64 encoded location of the device to cast to"
+// @Param base64query path string true "Base64 encoded URI encoded query string. Supported parameters: video, subtitle, title"
 // @Success 200 {object} MessageResponse
 // @Failure 404 {object} MessageResponse
 func CastTorrentFile() func(w http.ResponseWriter, r *http.Request) {

@@ -20,7 +20,7 @@ type ShowEpisodesResponse struct {
 // @Summary Get show episodes by IMDB id
 // @Description
 // @Tags Media search
-// @Param imdb path string true " "
+// @Param imdb path string true "IMDB id of the show" example(tt4574334)
 // @Success 200 {object} ShowEpisodesResponse
 // @Failure 404 {object} MessageResponse
 func GetShowEpisodesByImdb() func(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +45,7 @@ func GetShowEpisodesByImdb() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Get show episodes by TVDB id
 // @Description
 // @Tags Media search
-// @Param tvdb path string true " "
+// @Param tvdb path string true "TVDB id of the show" example(66732)
 // @Success 200 {object} ShowEpisodesResponse
 // @Failure 404 {object} MessageResponse
 func GetShowEpisodesByTvdb() func(w http.ResponseWriter, r *http.Request) {
@@ -70,8 +70,8 @@ func GetShowEpisodesByTvdb() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Get show episodes by TVDB id and IMDB id
 // @Description
 // @Tags Media search
-// @Param tvdb path string true " "
-// @Param imdb path string true " "
+// @Param tvdb path string true "TVDB id of the show" example(66732)
+// @Param imdb path string true "IMDB id of the show" example(tt4574334)
 // @Success 200 {object} ShowEpisodesResponse
 // @Failure 404 {object} MessageResponse
 func GetShowEpisodesByImdbAndTvdb() func(w http.ResponseWriter, r *http.Request) {

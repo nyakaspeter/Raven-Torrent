@@ -27,7 +27,7 @@ type TorrentStatsResponse struct {
 // @Summary Get torrent download stats
 // @Description
 // @Tags Torrent client
-// @Param hash path string true " "
+// @Param hash path string true "Infohash of the torrent"
 // @Success 200 {object} TorrentStatsResponse
 // @Failure 404 {object} MessageResponse
 func GetTorrentStats() func(w http.ResponseWriter, r *http.Request) {

@@ -14,9 +14,9 @@ import (
 // @Summary Search movies
 // @Description
 // @Tags Media search
-// @Param text path string true " "
-// @Param lang path string true " "
-// @Param page path int true " "
+// @Param text path string true "Text query to search. Space characters must be replaced with minus or non-breaking space characters. This value should be URI encoded" example(Star+Wars)
+// @Param lang path string true "ISO 639-1 two-letter language code" example(en)
+// @Param page path int true "Specify the page of results to query" example(1)
 // @Success 200 {object} TmdbMovieResultsResponse
 // @Failure 404 {object} MessageResponse
 func SearchMovies() func(w http.ResponseWriter, r *http.Request) {
@@ -45,9 +45,9 @@ func SearchMovies() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Search shows
 // @Description
 // @Tags Media search
-// @Param text path string true " "
-// @Param lang path string true " "
-// @Param page path int true " "
+// @Param text path string true "Text query to search. Space characters must be replaced with minus or non-breaking space characters. This value should be URI encoded" example(Stranger+Things)
+// @Param lang path string true "ISO 639-1 two-letter language code" example(en)
+// @Param page path int true "Specify the page of results to query" example(1)
 // @Success 200 {object} TmdbShowResultsResponse
 // @Failure 404 {object} MessageResponse
 func SearchShows() func(w http.ResponseWriter, r *http.Request) {

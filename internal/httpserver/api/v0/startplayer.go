@@ -16,8 +16,8 @@ import (
 // @Summary Launch media player application
 // @Description
 // @Tags Media playback
-// @Param base64path path string true " "
-// @Param base64args path string true " "
+// @Param base64path path string true "Base64 encoded path to the media player executable"
+// @Param base64args path string true "Base64 encoded launch arguments to pass to the media player"
 // @Success 200 {object} MessageResponse
 // @Failure 404 {object} MessageResponse
 func StartMediaPlayer() func(w http.ResponseWriter, r *http.Request) {

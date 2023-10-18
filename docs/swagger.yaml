@@ -175,7 +175,6 @@ definitions:
       poster_path:
         type: string
       production_companies:
-        description: Collections         []Collection `json:"belongs_to_collection"`
         items:
           $ref: '#/definitions/types.Company'
         type: array
@@ -639,12 +638,13 @@ paths:
   /cast/{base64location}/{base64query}:
     get:
       parameters:
-      - description: ' '
+      - description: Base64 encoded location of the device to cast to
         in: path
         name: base64location
         required: true
         type: string
-      - description: ' '
+      - description: 'Base64 encoded URI encoded query string. Supported parameters:
+          video, subtitle, title'
         in: path
         name: base64query
         required: true
@@ -664,7 +664,7 @@ paths:
   /delete/{hash}:
     get:
       parameters:
-      - description: ' '
+      - description: Infohash of torrent to delete
         in: path
         name: hash
         required: true
@@ -698,12 +698,15 @@ paths:
   /getmoviemagnet/imdb/{imdb}/providers/{providers}:
     get:
       parameters:
-      - description: ' '
+      - description: IMDB id of the movie
+        example: tt0133093
         in: path
         name: imdb
         required: true
         type: string
-      - description: ' '
+      - description: 'Torrent providers to use, separated by comma. Possible values:
+          jackett, yts, 1337x, itorrent'
+        example: jackett,yts
         in: path
         name: providers
         required: true
@@ -723,17 +726,21 @@ paths:
   /getmoviemagnet/imdb/{imdb}/query/{query}/providers/{providers}:
     get:
       parameters:
-      - description: ' '
+      - description: IMDB id of the movie
+        example: tt0133093
         in: path
         name: imdb
         required: true
         type: string
-      - description: ' '
+      - description: 'URI encoded query string. Supported parameters: title, releaseyear'
+        example: title=The+Matrix&releaseyear=1999
         in: path
         name: query
         required: true
         type: string
-      - description: ' '
+      - description: 'Torrent providers to use, separated by comma. Possible values:
+          jackett, yts, 1337x, itorrent'
+        example: jackett,yts
         in: path
         name: providers
         required: true
@@ -753,12 +760,15 @@ paths:
   /getmoviemagnet/query/{query}/providers/{providers}:
     get:
       parameters:
-      - description: ' '
+      - description: 'URI encoded query string. Supported parameters: title, releaseyear'
+        example: title=The+Matrix&releaseyear=1999
         in: path
         name: query
         required: true
         type: string
-      - description: ' '
+      - description: 'Torrent providers to use, separated by comma. Possible values:
+          jackett, yts, 1337x, itorrent'
+        example: jackett,yts
         in: path
         name: providers
         required: true
@@ -778,27 +788,33 @@ paths:
   /getshowmagnet/imdb/{imdb}/query/{query}/season/{season}/episode/{episode}/providers/{providers}:
     get:
       parameters:
-      - description: ' '
+      - description: IMDB id of the show
+        example: tt4574334
         in: path
         name: imdb
         required: true
         type: string
-      - description: ' '
+      - description: 'URI encoded query string. Supported parameters: title'
+        example: title=Stranger+Things
         in: path
         name: query
         required: true
         type: string
-      - description: ' '
+      - description: Season number. Use 0 to search for all seasons
+        example: 1
         in: path
         name: season
         required: true
         type: integer
-      - description: ' '
+      - description: Episode number. Use 0 to search for all episodes
+        example: 1
         in: path
         name: episode
         required: true
         type: integer
-      - description: ' '
+      - description: 'Torrent providers to use, separated by comma. Possible values:
+          jackett, eztv, 1337x, itorrent'
+        example: jackett,eztv
         in: path
         name: providers
         required: true
@@ -818,22 +834,27 @@ paths:
   /getshowmagnet/imdb/{imdb}/season/{season}/episode/{episode}/providers/{providers}:
     get:
       parameters:
-      - description: ' '
+      - description: IMDB id of the show
+        example: tt4574334
         in: path
         name: imdb
         required: true
         type: string
-      - description: ' '
+      - description: Season number. Use 0 to search for all seasons
+        example: 1
         in: path
         name: season
         required: true
         type: integer
-      - description: ' '
+      - description: Episode number. Use 0 to search for all episodes
+        example: 1
         in: path
         name: episode
         required: true
         type: integer
-      - description: ' '
+      - description: 'Torrent providers to use, separated by comma. Possible values:
+          jackett, eztv, 1337x, itorrent'
+        example: jackett,eztv
         in: path
         name: providers
         required: true
@@ -853,22 +874,27 @@ paths:
   /getshowmagnet/query/{query}/season/{season}/episode/{episode}/providers/{providers}:
     get:
       parameters:
-      - description: ' '
+      - description: 'URI encoded query string. Supported parameters: title'
+        example: title=Stranger+Things
         in: path
         name: query
         required: true
         type: string
-      - description: ' '
+      - description: Season number. Use 0 to search for all seasons
+        example: 1
         in: path
         name: season
         required: true
         type: integer
-      - description: ' '
+      - description: Episode number. Use 0 to search for all episodes
+        example: 1
         in: path
         name: episode
         required: true
         type: integer
-      - description: ' '
+      - description: 'Torrent providers to use, separated by comma. Possible values:
+          jackett, eztv, 1337x, itorrent'
+        example: jackett,eztv
         in: path
         name: providers
         required: true
@@ -902,12 +928,14 @@ paths:
   /restart/downrate/{downrate}/uprate/{uprate}:
     get:
       parameters:
-      - description: ' '
+      - description: Maximum download speed in Kbps. Use 0 for unlimited
+        example: 4096
         in: path
         name: downrate
         required: true
         type: integer
-      - description: ' '
+      - description: Maximum upload speed in Kbps. Use 0 to disable uploading
+        example: 1024
         in: path
         name: uprate
         required: true
@@ -927,12 +955,12 @@ paths:
   /startplayer/{base64path}/{base64args}:
     get:
       parameters:
-      - description: ' '
+      - description: Base64 encoded path to the media player executable
         in: path
         name: base64path
         required: true
         type: string
-      - description: ' '
+      - description: Base64 encoded launch arguments to pass to the media player
         in: path
         name: base64args
         required: true
@@ -952,7 +980,7 @@ paths:
   /stats/{hash}:
     get:
       parameters:
-      - description: ' '
+      - description: Infohash of the torrent
         in: path
         name: hash
         required: true
@@ -982,17 +1010,19 @@ paths:
   /subtitlesbyfile/{hash}/{base64path}/lang/{lang}:
     get:
       parameters:
-      - description: ' '
+      - description: Infohash of the torrent
         in: path
         name: hash
         required: true
         type: string
-      - description: ' '
+      - description: 'Base64 encoded path with filename (for example: Season.1/Stranger.Things.S01E01.1080p.mkv,
+          encoded to base64)'
         in: path
         name: base64path
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-2 three-letter language codes, separated by comma
+        example: hun,eng
         in: path
         name: lang
         required: true
@@ -1006,28 +1036,32 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/v0.MessageResponse'
-      summary: Get subtitles by file hash
+      summary: Get subtitles by torrent's inner file hash
       tags:
       - Subtitle search
   /subtitlesbyimdb/{imdb}/lang/{lang}/season/{season}/episode/{episode}:
     get:
       parameters:
-      - description: ' '
+      - description: IMDB id of the movie or show
+        example: tt4574334
         in: path
         name: imdb
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-2 three-letter language codes, separated by comma
+        example: hun,eng
         in: path
         name: lang
         required: true
         type: string
-      - description: ' '
+      - description: Season number. Must be set to 0 for movie subtitle search.
+        example: 0
         in: path
         name: season
         required: true
         type: integer
-      - description: ' '
+      - description: Episode number. Must be set to 0 for movie subtitle search.
+        example: 0
         in: path
         name: episode
         required: true
@@ -1047,22 +1081,26 @@ paths:
   /subtitlesbytext/{text}/lang/{lang}/season/{season}/episode/{episode}:
     get:
       parameters:
-      - description: ' '
+      - description: Title of the movie or show
+        example: Stranger Things
         in: path
         name: text
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-2 three-letter language codes, separated by comma
+        example: hun,eng
         in: path
         name: lang
         required: true
         type: string
-      - description: ' '
+      - description: Season number. Must be set to 0 for movie subtitle search.
+        example: 0
         in: path
         name: season
         required: true
         type: integer
-      - description: ' '
+      - description: Episode number. Must be set to 0 for movie subtitle search.
+        example: 0
         in: path
         name: episode
         required: true
@@ -1082,27 +1120,41 @@ paths:
   /tmdbdiscover/type/movie/genretype/{genretype}/sort/{sort}/date/{date}/lang/{lang}/page/{page}:
     get:
       parameters:
-      - description: ' '
+      - description: "Genre ids separated by comma, or 'all' to search for all genres.
+          Possible values: 28 (Action), 12\t(Adventure), 16\t(Animation), 35\t(Comedy),
+          80 (Crime), 99 (Documentary), 18 (Drama), 10751 (Family), 14 (Fantasy),
+          36 (History), 27 (Horror), 10402 (Music), 9648 (Mystery), 10749 (Romance),
+          878 (Sci-fi), 53 (Thriller), 10752 (War), 37 (Western)"
+        example: all
         in: path
         name: genretype
         required: true
         type: string
-      - description: ' '
+      - description: 'Sort order. Possible values: popularity.asc, popularity.desc,
+          release_date.asc, release_date.desc, revenue.asc, revenue.desc, primary_release_date.asc,
+          primary_release_date.desc, original_title.asc, original_title.desc, vote_average.asc,
+          vote_average.desc, vote_count.asc, vote_count.desc'
+        example: popularity.desc
         in: path
         name: sort
         required: true
         type: string
-      - description: ' '
+      - description: 'Filter and only include movies or tv shows that have a release
+          or air date that is less than or equal to the specified value. Standard
+          date format: YYYY-MM-DD'
+        example: "2020-01-01"
         in: path
         name: date
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-1 two-letter language code
+        example: en
         in: path
         name: lang
         required: true
         type: string
-      - description: ' '
+      - description: Specify the page of results to query
+        example: 1
         in: path
         name: page
         required: true
@@ -1122,27 +1174,41 @@ paths:
   /tmdbdiscover/type/tv/genretype/{genretype}/sort/{sort}/date/{date}/lang/{lang}/page/{page}:
     get:
       parameters:
-      - description: ' '
+      - description: 'Genre ids separated by comma, or ''all'' to search for all genres.
+          Possible values: 10759 (Action & Adventure), 16 (Animation), 35 (Comedy),
+          80 (Crime), 99 (Documentary), 18 (Drama), 10751 (Family), 10762 (Kids),
+          9648 (Mystery), 10763 (News), 10764 (Reality), 10765 (Sci-fi & Fantasy),
+          10766 (Soap), 10767 (Talk), 10768 (War & Politics), 37 (Western)'
+        example: all
         in: path
         name: genretype
         required: true
         type: string
-      - description: ' '
+      - description: 'Sort order. Possible values: popularity.asc, popularity.desc,
+          release_date.asc, release_date.desc, revenue.asc, revenue.desc, primary_release_date.asc,
+          primary_release_date.desc, original_title.asc, original_title.desc, vote_average.asc,
+          vote_average.desc, vote_count.asc, vote_count.desc'
+        example: popularity.desc
         in: path
         name: sort
         required: true
         type: string
-      - description: ' '
+      - description: 'Filter and only include movies or tv shows that have a release
+          or air date that is less than or equal to the specified value. Standard
+          date format: YYYY-MM-DD'
+        example: "2020-01-01"
         in: path
         name: date
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-1 two-letter language code
+        example: en
         in: path
         name: lang
         required: true
         type: string
-      - description: ' '
+      - description: Specify the page of results to query
+        example: 1
         in: path
         name: page
         required: true
@@ -1162,12 +1228,14 @@ paths:
   /tmdbinfo/type/movie/tmdbid/{tmdbid}/lang/{lang}:
     get:
       parameters:
-      - description: ' '
+      - description: TMDB id of the movie
+        example: "603"
         in: path
         name: tmdbid
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-1 two-letter language code
+        example: en
         in: path
         name: lang
         required: true
@@ -1187,12 +1255,14 @@ paths:
   /tmdbinfo/type/tv/tmdbid/{tmdbid}/lang/{lang}:
     get:
       parameters:
-      - description: ' '
+      - description: TMDB id of the show
+        example: "66732"
         in: path
         name: tmdbid
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-1 two-letter language code
+        example: en
         in: path
         name: lang
         required: true
@@ -1212,17 +1282,21 @@ paths:
   /tmdbsearch/type/movie/lang/{lang}/page/{page}/text/{text}:
     get:
       parameters:
-      - description: ' '
+      - description: Text query to search. Space characters must be replaced with
+          minus or non-breaking space characters. This value should be URI encoded
+        example: Star+Wars
         in: path
         name: text
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-1 two-letter language code
+        example: en
         in: path
         name: lang
         required: true
         type: string
-      - description: ' '
+      - description: Specify the page of results to query
+        example: 1
         in: path
         name: page
         required: true
@@ -1242,17 +1316,21 @@ paths:
   /tmdbsearch/type/tv/lang/{lang}/page/{page}/text/{text}:
     get:
       parameters:
-      - description: ' '
+      - description: Text query to search. Space characters must be replaced with
+          minus or non-breaking space characters. This value should be URI encoded
+        example: Stranger+Things
         in: path
         name: text
         required: true
         type: string
-      - description: ' '
+      - description: ISO 639-1 two-letter language code
+        example: en
         in: path
         name: lang
         required: true
         type: string
-      - description: ' '
+      - description: Specify the page of results to query
+        example: 1
         in: path
         name: page
         required: true
@@ -1286,7 +1364,8 @@ paths:
   /tvmazeepisodes/imdb/{imdb}:
     get:
       parameters:
-      - description: ' '
+      - description: IMDB id of the show
+        example: tt4574334
         in: path
         name: imdb
         required: true
@@ -1306,7 +1385,8 @@ paths:
   /tvmazeepisodes/tvdb/{tvdb}:
     get:
       parameters:
-      - description: ' '
+      - description: TVDB id of the show
+        example: "66732"
         in: path
         name: tvdb
         required: true
@@ -1326,12 +1406,14 @@ paths:
   /tvmazeepisodes/tvdb/{tvdb}/imdb/{imdb}:
     get:
       parameters:
-      - description: ' '
+      - description: TVDB id of the show
+        example: "66732"
         in: path
         name: tvdb
         required: true
         type: string
-      - description: ' '
+      - description: IMDB id of the show
+        example: tt4574334
         in: path
         name: imdb
         required: true

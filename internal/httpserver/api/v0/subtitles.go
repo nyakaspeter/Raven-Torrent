@@ -24,10 +24,10 @@ type SubtitleFilesResultsResponse struct {
 // @Summary Get subtitles by IMDB id
 // @Description
 // @Tags Subtitle search
-// @Param imdb path string true " "
-// @Param lang path string true " "
-// @Param season path int true " "
-// @Param episode path int true " "
+// @Param imdb path string true "IMDB id of the movie or show" example(tt4574334)
+// @Param lang path string true "ISO 639-2 three-letter language codes, separated by comma" example(hun,eng)
+// @Param season path int true "Season number. Must be set to 0 for movie subtitle search." example(0)
+// @Param episode path int true "Episode number. Must be set to 0 for movie subtitle search." example(0)
 // @Success 200 {object} SubtitleFilesResultsResponse
 // @Failure 404 {object} MessageResponse
 func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
@@ -77,10 +77,10 @@ func GetSubtitlesByImdb() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Get subtitles by text
 // @Description
 // @Tags Subtitle search
-// @Param text path string true " "
-// @Param lang path string true " "
-// @Param season path int true " "
-// @Param episode path int true " "
+// @Param text path string true "Title of the movie or show" example(Stranger Things)
+// @Param lang path string true "ISO 639-2 three-letter language codes, separated by comma" example(hun,eng)
+// @Param season path int true "Season number. Must be set to 0 for movie subtitle search." example(0)
+// @Param episode path int true "Episode number. Must be set to 0 for movie subtitle search." example(0)
 // @Success 200 {object} SubtitleFilesResultsResponse
 // @Failure 404 {object} MessageResponse
 func GetSubtitlesByText() func(w http.ResponseWriter, r *http.Request) {
@@ -127,12 +127,12 @@ func GetSubtitlesByText() func(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Router /subtitlesbyfile/{hash}/{base64path}/lang/{lang} [get]
-// @Summary Get subtitles by file hash
+// @Summary Get subtitles by torrent's inner file hash
 // @Description
 // @Tags Subtitle search
-// @Param hash path string true " "
-// @Param base64path path string true " "
-// @Param lang path string true " "
+// @Param hash path string true "Infohash of the torrent"
+// @Param base64path path string true "Base64 encoded path with filename (for example: Season.1/Stranger.Things.S01E01.1080p.mkv, encoded to base64)"
+// @Param lang path string true "ISO 639-2 three-letter language codes, separated by comma" example(hun,eng)
 // @Success 200 {object} SubtitleFilesResultsResponse
 // @Failure 404 {object} MessageResponse
 func GetSubtitlesByFileHash() func(w http.ResponseWriter, r *http.Request) {

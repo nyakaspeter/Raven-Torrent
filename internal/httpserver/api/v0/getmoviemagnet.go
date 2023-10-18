@@ -23,8 +23,8 @@ type MovieMagnetLinksResponse struct {
 // @Summary Get movie torrents by IMDB id
 // @Description
 // @Tags Torrent search
-// @Param imdb path string true " "
-// @Param providers path string true " "
+// @Param imdb path string true "IMDB id of the movie" example(tt0133093)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, yts, 1337x, itorrent" example(jackett,yts)
 // @Success 200 {object} MovieMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
@@ -47,8 +47,8 @@ func GetMovieTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Get movie torrents by query string
 // @Description
 // @Tags Torrent search
-// @Param query path string true " "
-// @Param providers path string true " "
+// @Param query path string true "URI encoded query string. Supported parameters: title, releaseyear" example(title=The+Matrix&releaseyear=1999)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, yts, 1337x, itorrent" example(jackett,yts)
 // @Success 200 {object} MovieMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
@@ -70,9 +70,9 @@ func GetMovieTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 // @Summary Get movie torrents by IMDB id and query string
 // @Description
 // @Tags Torrent search
-// @Param imdb path string true " "
-// @Param query path string true " "
-// @Param providers path string true " "
+// @Param imdb path string true "IMDB id of the movie" example(tt0133093)
+// @Param query path string true "URI encoded query string. Supported parameters: title, releaseyear" example(title=The+Matrix&releaseyear=1999)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, yts, 1337x, itorrent" example(jackett,yts)
 // @Success 200 {object} MovieMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByImdbAndQuery() func(w http.ResponseWriter, r *http.Request) {

@@ -72,14 +72,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "description": "Base64 encoded location of the device to cast to",
                         "name": "base64location",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "description": "Base64 encoded URI encoded query string. Supported parameters: video, subtitle, title",
                         "name": "base64query",
                         "in": "path",
                         "required": true
@@ -110,7 +110,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "description": "Infohash of torrent to delete",
                         "name": "hash",
                         "in": "path",
                         "required": true
@@ -163,14 +163,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "tt0133093",
+                        "description": "IMDB id of the movie",
                         "name": "imdb",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "jackett,yts",
+                        "description": "Torrent providers to use, separated by comma. Possible values: jackett, yts, 1337x, itorrent",
                         "name": "providers",
                         "in": "path",
                         "required": true
@@ -201,21 +203,24 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "tt0133093",
+                        "description": "IMDB id of the movie",
                         "name": "imdb",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "title=The+Matrix\u0026releaseyear=1999",
+                        "description": "URI encoded query string. Supported parameters: title, releaseyear",
                         "name": "query",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "jackett,yts",
+                        "description": "Torrent providers to use, separated by comma. Possible values: jackett, yts, 1337x, itorrent",
                         "name": "providers",
                         "in": "path",
                         "required": true
@@ -246,14 +251,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "title=The+Matrix\u0026releaseyear=1999",
+                        "description": "URI encoded query string. Supported parameters: title, releaseyear",
                         "name": "query",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "jackett,yts",
+                        "description": "Torrent providers to use, separated by comma. Possible values: jackett, yts, 1337x, itorrent",
                         "name": "providers",
                         "in": "path",
                         "required": true
@@ -284,35 +291,40 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "tt4574334",
+                        "description": "IMDB id of the show",
                         "name": "imdb",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "title=Stranger+Things",
+                        "description": "URI encoded query string. Supported parameters: title",
                         "name": "query",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Season number. Use 0 to search for all seasons",
                         "name": "season",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Episode number. Use 0 to search for all episodes",
                         "name": "episode",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "jackett,eztv",
+                        "description": "Torrent providers to use, separated by comma. Possible values: jackett, eztv, 1337x, itorrent",
                         "name": "providers",
                         "in": "path",
                         "required": true
@@ -343,28 +355,32 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "tt4574334",
+                        "description": "IMDB id of the show",
                         "name": "imdb",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Season number. Use 0 to search for all seasons",
                         "name": "season",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Episode number. Use 0 to search for all episodes",
                         "name": "episode",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "jackett,eztv",
+                        "description": "Torrent providers to use, separated by comma. Possible values: jackett, eztv, 1337x, itorrent",
                         "name": "providers",
                         "in": "path",
                         "required": true
@@ -395,28 +411,32 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "title=Stranger+Things",
+                        "description": "URI encoded query string. Supported parameters: title",
                         "name": "query",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Season number. Use 0 to search for all seasons",
                         "name": "season",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Episode number. Use 0 to search for all episodes",
                         "name": "episode",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "jackett,eztv",
+                        "description": "Torrent providers to use, separated by comma. Possible values: jackett, eztv, 1337x, itorrent",
                         "name": "providers",
                         "in": "path",
                         "required": true
@@ -469,14 +489,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 4096,
+                        "description": "Maximum download speed in Kbps. Use 0 for unlimited",
                         "name": "downrate",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1024,
+                        "description": "Maximum upload speed in Kbps. Use 0 to disable uploading",
                         "name": "uprate",
                         "in": "path",
                         "required": true
@@ -507,14 +529,14 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "description": "Base64 encoded path to the media player executable",
                         "name": "base64path",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "description": "Base64 encoded launch arguments to pass to the media player",
                         "name": "base64args",
                         "in": "path",
                         "required": true
@@ -545,7 +567,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "description": "Infohash of the torrent",
                         "name": "hash",
                         "in": "path",
                         "required": true
@@ -588,25 +610,26 @@ const docTemplate = `{
                 "tags": [
                     "Subtitle search"
                 ],
-                "summary": "Get subtitles by file hash",
+                "summary": "Get subtitles by torrent's inner file hash",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "description": "Infohash of the torrent",
                         "name": "hash",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "description": "Base64 encoded path with filename (for example: Season.1/Stranger.Things.S01E01.1080p.mkv, encoded to base64)",
                         "name": "base64path",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "hun,eng",
+                        "description": "ISO 639-2 three-letter language codes, separated by comma",
                         "name": "lang",
                         "in": "path",
                         "required": true
@@ -637,28 +660,32 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "tt4574334",
+                        "description": "IMDB id of the movie or show",
                         "name": "imdb",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "hun,eng",
+                        "description": "ISO 639-2 three-letter language codes, separated by comma",
                         "name": "lang",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 0,
+                        "description": "Season number. Must be set to 0 for movie subtitle search.",
                         "name": "season",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 0,
+                        "description": "Episode number. Must be set to 0 for movie subtitle search.",
                         "name": "episode",
                         "in": "path",
                         "required": true
@@ -689,28 +716,32 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "Stranger Things",
+                        "description": "Title of the movie or show",
                         "name": "text",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "hun,eng",
+                        "description": "ISO 639-2 three-letter language codes, separated by comma",
                         "name": "lang",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 0,
+                        "description": "Season number. Must be set to 0 for movie subtitle search.",
                         "name": "season",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 0,
+                        "description": "Episode number. Must be set to 0 for movie subtitle search.",
                         "name": "episode",
                         "in": "path",
                         "required": true
@@ -741,35 +772,40 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "all",
+                        "description": "Genre ids separated by comma, or 'all' to search for all genres. Possible values: 28 (Action), 12\t(Adventure), 16\t(Animation), 35\t(Comedy), 80 (Crime), 99 (Documentary), 18 (Drama), 10751 (Family), 14 (Fantasy), 36 (History), 27 (Horror), 10402 (Music), 9648 (Mystery), 10749 (Romance), 878 (Sci-fi), 53 (Thriller), 10752 (War), 37 (Western)",
                         "name": "genretype",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "popularity.desc",
+                        "description": "Sort order. Possible values: popularity.asc, popularity.desc, release_date.asc, release_date.desc, revenue.asc, revenue.desc, primary_release_date.asc, primary_release_date.desc, original_title.asc, original_title.desc, vote_average.asc, vote_average.desc, vote_count.asc, vote_count.desc",
                         "name": "sort",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "2020-01-01",
+                        "description": "Filter and only include movies or tv shows that have a release or air date that is less than or equal to the specified value. Standard date format: YYYY-MM-DD",
                         "name": "date",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "en",
+                        "description": "ISO 639-1 two-letter language code",
                         "name": "lang",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Specify the page of results to query",
                         "name": "page",
                         "in": "path",
                         "required": true
@@ -800,35 +836,40 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "all",
+                        "description": "Genre ids separated by comma, or 'all' to search for all genres. Possible values: 10759 (Action \u0026 Adventure), 16 (Animation), 35 (Comedy), 80 (Crime), 99 (Documentary), 18 (Drama), 10751 (Family), 10762 (Kids), 9648 (Mystery), 10763 (News), 10764 (Reality), 10765 (Sci-fi \u0026 Fantasy), 10766 (Soap), 10767 (Talk), 10768 (War \u0026 Politics), 37 (Western)",
                         "name": "genretype",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "popularity.desc",
+                        "description": "Sort order. Possible values: popularity.asc, popularity.desc, release_date.asc, release_date.desc, revenue.asc, revenue.desc, primary_release_date.asc, primary_release_date.desc, original_title.asc, original_title.desc, vote_average.asc, vote_average.desc, vote_count.asc, vote_count.desc",
                         "name": "sort",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "2020-01-01",
+                        "description": "Filter and only include movies or tv shows that have a release or air date that is less than or equal to the specified value. Standard date format: YYYY-MM-DD",
                         "name": "date",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "en",
+                        "description": "ISO 639-1 two-letter language code",
                         "name": "lang",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Specify the page of results to query",
                         "name": "page",
                         "in": "path",
                         "required": true
@@ -859,14 +900,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "603",
+                        "description": "TMDB id of the movie",
                         "name": "tmdbid",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "en",
+                        "description": "ISO 639-1 two-letter language code",
                         "name": "lang",
                         "in": "path",
                         "required": true
@@ -897,14 +940,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "66732",
+                        "description": "TMDB id of the show",
                         "name": "tmdbid",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "en",
+                        "description": "ISO 639-1 two-letter language code",
                         "name": "lang",
                         "in": "path",
                         "required": true
@@ -935,21 +980,24 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "Star+Wars",
+                        "description": "Text query to search. Space characters must be replaced with minus or non-breaking space characters. This value should be URI encoded",
                         "name": "text",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "en",
+                        "description": "ISO 639-1 two-letter language code",
                         "name": "lang",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Specify the page of results to query",
                         "name": "page",
                         "in": "path",
                         "required": true
@@ -980,21 +1028,24 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "Stranger+Things",
+                        "description": "Text query to search. Space characters must be replaced with minus or non-breaking space characters. This value should be URI encoded",
                         "name": "text",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "en",
+                        "description": "ISO 639-1 two-letter language code",
                         "name": "lang",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": " ",
+                        "example": 1,
+                        "description": "Specify the page of results to query",
                         "name": "page",
                         "in": "path",
                         "required": true
@@ -1047,7 +1098,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "tt4574334",
+                        "description": "IMDB id of the show",
                         "name": "imdb",
                         "in": "path",
                         "required": true
@@ -1078,7 +1130,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "66732",
+                        "description": "TVDB id of the show",
                         "name": "tvdb",
                         "in": "path",
                         "required": true
@@ -1109,14 +1162,16 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "66732",
+                        "description": "TVDB id of the show",
                         "name": "tvdb",
                         "in": "path",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": " ",
+                        "example": "tt4574334",
+                        "description": "IMDB id of the show",
                         "name": "imdb",
                         "in": "path",
                         "required": true
@@ -1408,7 +1463,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "production_companies": {
-                    "description": "Collections         []Collection ` + "`" + `json:\"belongs_to_collection\"` + "`" + `",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/types.Company"

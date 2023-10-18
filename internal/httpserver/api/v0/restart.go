@@ -17,8 +17,8 @@ import (
 // @Summary Restart torrent client with new bandwith limits
 // @Description
 // @Tags Torrent client
-// @Param downrate path int true " "
-// @Param uprate path int true " "
+// @Param downrate path int true "Maximum download speed in Kbps. Use 0 for unlimited" example(4096)
+// @Param uprate path int true "Maximum upload speed in Kbps. Use 0 to disable uploading" example(1024)
 // @Success 200 {object} MessageResponse
 // @Failure 404 {object} MessageResponse
 func RestartTorrentClient(quitSignal chan os.Signal) func(w http.ResponseWriter, r *http.Request) {

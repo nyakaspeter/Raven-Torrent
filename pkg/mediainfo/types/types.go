@@ -62,21 +62,20 @@ type Show struct {
 }
 
 type MovieInfo struct {
-	Id               int     `json:"id"`
-	ImdbId           string  `json:"imdb_id"`
-	Title            string  `json:"title"`
-	OriginalTitle    string  `json:"original_title"`
-	OriginalLanguage string  `json:"original_language"`
-	ReleaseDate      string  `json:"release_date"`
-	Description      string  `json:"overview"`
-	Tagline          string  `json:"tagline"`
-	PosterPath       string  `json:"poster_path"`
-	BackdropPath     string  `json:"backdrop_path"`
-	Popularity       float64 `json:"popularity"`
-	VoteAverage      float64 `json:"vote_average"`
-	VoteCount        int     `json:"vote_count"`
-	Genres           []Genre `json:"genres"`
-	// Collections         []Collection `json:"belongs_to_collection"`
+	Id                  int        `json:"id"`
+	ImdbId              string     `json:"imdb_id"`
+	Title               string     `json:"title"`
+	OriginalTitle       string     `json:"original_title"`
+	OriginalLanguage    string     `json:"original_language"`
+	ReleaseDate         string     `json:"release_date"`
+	Description         string     `json:"overview"`
+	Tagline             string     `json:"tagline"`
+	PosterPath          string     `json:"poster_path"`
+	BackdropPath        string     `json:"backdrop_path"`
+	Popularity          float64    `json:"popularity"`
+	VoteAverage         float64    `json:"vote_average"`
+	VoteCount           int        `json:"vote_count"`
+	Genres              []Genre    `json:"genres"`
 	ProductionCompanies []Company  `json:"production_companies"`
 	ProductionCountries []Country  `json:"production_countries"`
 	SpokenLanguages     []Language `json:"spoken_languages"`

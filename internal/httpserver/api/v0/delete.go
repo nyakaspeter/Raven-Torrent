@@ -14,7 +14,7 @@ import (
 // @Summary Delete torrent from torrent client
 // @Description
 // @Tags Torrent client
-// @Param hash path string true " "
+// @Param hash path string true "Infohash of torrent to delete"
 // @Success 200 {object} MessageResponse
 // @Failure 404 {object} MessageResponse
 func DeleteTorrent() func(w http.ResponseWriter, r *http.Request) {
