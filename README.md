@@ -50,21 +50,41 @@ By default, the API is available at http://localhost:9000/api/v0. API docs for t
 
 **-swagger** enable Swagger UI
 
-### CLI examples
+### How to use
 
-#### Running the executable file with parameters to serve torrent data from a 512MB memory buffer
+Raven Server can run on all kinds of devices, using very little resources by today's standards. There are [builds](/releases) available for both Windows and Linux, and even an ARM version that can run on old TVs or smartphones. On Android the executable can be launched from a terminal emulator like [Termux](https://termux.dev). All you have to do is [download](/releases) or [build](#build-instructions) the correct binary for your device's operating system and architecture and run it from the command line. Some examples:
 
-`./raven -memorysize=512`
+#### Running with arguments to serve torrent data from RAM
 
-#### Running the executable file with parameters to serve torrent data from local disk
+`./raven -storagetype="memory" -memorysize="128"`
+
+#### Running with arguments to serve torrent data from local disk
 
 `./raven -storagetype="file" -dir="downloads"`
 
-#### Running the executable file with parameters to use Jackett for torrent search
+#### Running with arguments to use Jackett for torrent search
 
 `./raven -jackettaddress="http://192.168.0.2:9117" -jackettkey="1n53rty0urj4ck3tt4p1k3yh3r3"`
 
-### Build Instructions
+### Jackett integration
+
+Raven only supports a handful of torrent sites with built-in API integration and webscrapers, but it can also connect to [Jackett](https://github.com/Jackett/Jackett) to enable torrent search on dozens of other sites. To be able to use this, you'll also have to run Jackett somewhere on your local network, and supply the `-jackettaddress` and `-jackettkey` arguments when launching the server. Fortunately Jackett can run on most devices where Raven Server can run (except on Smart TVs where the resources are very limited). Check [their documentation](https://github.com/Jackett/Jackett#installation-on-windows) for info on how to run it on different systems.
+
+I also managed to run Jackett on an Android phone just like Raven Server with these steps:
+
+1. Download & install Termux from [F-Droid](https://f-droid.org/packages/com.termux/) (the Google Play version is outdated), then open it and use the following commands
+2. `pkg up` to update all Termux packages, use `termux-change-repo` to change download location if it throws an error
+3. `pkg install proot-distro`
+4. `proot-distro install ubuntu`
+5. `proot-distro login ubuntu`
+6. `apt-get update && apt-get upgrade -y` to update Ubuntu packages
+7. `apt-get install libicu-dev`
+8. `apt-get install wget` (or use any other means to get the Jackett binary into the Ubuntu filesystem)
+9. `wget https://github.com/Jackett/Jackett/releases/latest/download/Jackett.Binaries.LinuxARM64.tar.gz` to download the latest ARM64 build of Jackett (ARM32 may work too)
+10. `tar -xvzf Jackett.Binaries.LinuxARM64.tar.gz`
+11. `./Jackett/jackett`
+
+### Build instructions
 
 You can build the application by running the following commands from the project directory. [Go](https://golang.org/) must be installed for these to work.
 
