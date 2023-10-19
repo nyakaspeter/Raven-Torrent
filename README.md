@@ -52,7 +52,7 @@ By default, the API is available at http://localhost:9000/api/v0. API docs for t
 
 ### How to use
 
-Raven Server can run on all kinds of devices, using very little resources by today's standards. There are [builds](/releases) available for both Windows and Linux, and even an ARM version that can run on old TVs or smartphones. On Android the executable can be launched from a terminal emulator like [Termux](https://termux.dev). All you have to do is [download](/releases) or [build](#build-instructions) the correct binary for your device's operating system and architecture and run it from the command line. Some examples:
+Raven Server can run on all kinds of devices, using very little resources by today's standards. There are [builds](https://github.com/nyakaspeter/White-Raven/releases) available for both Windows and Linux, and even an ARM version that can run on old TVs or smartphones. On Android the executable can be launched from a terminal emulator like [Termux](https://termux.dev). All you have to do is [download](https://github.com/nyakaspeter/White-Raven/releases) or [build](#build-instructions) the correct binary for your device's operating system and architecture and run it from the command line. Some examples:
 
 #### Running with arguments to serve torrent data from RAM
 
@@ -68,9 +68,9 @@ Raven Server can run on all kinds of devices, using very little resources by tod
 
 ### Jackett integration
 
-Raven only supports a handful of torrent sites with built-in API integration and webscrapers, but it can also connect to [Jackett](https://github.com/Jackett/Jackett) to enable torrent search on dozens of other sites. To be able to use this, you'll also have to run Jackett somewhere on your local network, and supply the `-jackettaddress` and `-jackettkey` arguments when launching the server. Fortunately Jackett can run on most devices where Raven Server can run (except on Smart TVs where the resources are very limited). Check [their documentation](https://github.com/Jackett/Jackett#installation-on-windows) for info on how to run it on different systems.
+Raven only supports a handful of torrent sites with built-in API integration and webscrapers, but it can also connect to [Jackett](https://github.com/Jackett/Jackett) to enable torrent search on dozens of other sites. To be able to use this, you'll also have to run Jackett somewhere on your local network, and supply the `-jackettaddress` and `-jackettkey` arguments when launching the server.
 
-I also managed to run Jackett on an Android phone just like Raven Server with these steps:
+Fortunately Jackett can run on most devices where Raven Server can run (except on Smart TVs where the resources are very limited). Check [their documentation](https://github.com/Jackett/Jackett#installation-on-windows) for info on how to run it on different systems. I also managed to run Jackett on an Android phone just like Raven Server with these steps:
 
 1. Download & install Termux from [F-Droid](https://f-droid.org/packages/com.termux/) (the Google Play version is outdated), then open it and use the following commands
 2. `pkg up` to update all Termux packages, use `termux-change-repo` to change download location if it throws an error
