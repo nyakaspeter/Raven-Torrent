@@ -52,7 +52,7 @@ By default, the API is available at http://localhost:9000/api/v0. API docs for t
 
 ### How to use
 
-Raven Server can run on all kinds of devices, using very little resources by today's standards. There are [builds](https://github.com/nyakaspeter/White-Raven/releases) available for both Windows and Linux, and even an ARM version that can run on old TVs or smartphones. On Android the executable can be launched from a terminal emulator like [Termux](https://termux.dev). All you have to do is [download](https://github.com/nyakaspeter/White-Raven/releases) or [build](#build-instructions) the correct binary for your device's operating system and architecture and run it from the command line. Some examples:
+Raven Server can run on all kinds of devices, using very little resources by today's standards. There are [builds](https://github.com/nyakaspeter/Raven-Torrent/releases) available for both Windows and Linux, and even an ARM version that can run on old TVs or smartphones. On Android the executable can be launched from a terminal emulator like [Termux](https://termux.dev). All you have to do is [download](https://github.com/nyakaspeter/Raven-Torrent/releases) or [build](#build-instructions) the correct binary for your device's operating system and architecture and run it from the command line. Some examples:
 
 #### Running with arguments to serve torrent data from RAM
 
