@@ -10,7 +10,7 @@ Raven Server is a fork of [White Raven Server](https://github.com/silentmurdock/
 
 ### API documentation
 
-API docs for the server are available [here](docs/swagger.md). Swagger UI is also available on the `/swagger` endpoint, if the `-swagger` CLI argument is supplied when launching the server.
+By default, the API is available at http://localhost:9000/api/v0. API docs for the server are available [here](docs/swagger.md). Swagger UI is also available on the `/swagger` endpoint, if the `-swagger` CLI argument is supplied at launch. 
 
 ### CLI arguments
 
