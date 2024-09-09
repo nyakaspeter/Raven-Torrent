@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/PuerkitoBio/goquery v1.7.1
+	github.com/TheForgotten69/go-opensubtitles v1.0.1-0.20240817002828-db93f32ba5c6
 	github.com/anacrolix/log v0.9.0
 	github.com/anacrolix/torrent v1.28.0
 	github.com/dustin/go-humanize v1.0.0
@@ -13,7 +14,6 @@ require (
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
 	github.com/koron/go-ssdp v0.0.3
 	github.com/martinlindhe/subtitles v0.0.0-20210301100346-9aa635346c86
-	github.com/oz/osdb v0.0.0-20190204162748-da06ada9cdc1
 	github.com/swaggo/http-swagger v1.2.8
 	github.com/swaggo/swag v1.8.2
 	github.com/wailsapp/wails/v2 v2.0.0-rc.1.1
@@ -52,13 +52,13 @@ require (
 	github.com/go-openapi/spec v0.20.6 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/google/btree v1.0.1 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
-	github.com/kolo/xmlrpc v0.0.0-20201022064351-38db28db192b // indirect
 	github.com/labstack/echo/v4 v4.7.2 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect
 	github.com/leaanthony/go-ansi-parser v1.0.1 // indirect

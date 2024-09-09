@@ -1,6 +1,6 @@
 @echo off
 
-set VERSION=0.6.0
+set VERSION=0.7.0
 set PLATFORMS=(windows-x64,windows-x86, linux-x64, linux-x86, linux-armv7)
 
 for %%P in %PLATFORMS% do (

@@ -603,7 +603,7 @@ host: localhost:9000
 info:
   contact: {}
   title: Raven Torrent API
-  version: 0.6.0
+  version: 0.7.0
 paths:
   /about:
     get:

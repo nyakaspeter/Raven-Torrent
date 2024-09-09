@@ -20,9 +20,6 @@ func main() {
 	log.SetFlags(0)
 	signal.Notify(quitSignal, os.Interrupt)
 
-	// Set Opensubtitles server address to http because https not working on Samsung Smart TV
-	os.Setenv("OSDB_SERVER", "http://api.opensubtitles.org/xml-rpc")
-
 	// Check storage type
 	if *settings.StorageType != "memory" && *settings.StorageType != "file" {
 		log.Printf("missing or invalid -storagetype value: \"%s\" (must be set to \"memory\" or \"file\")\nUsage of %s:\n", *settings.StorageType, os.Args[0])

@@ -13,8 +13,7 @@ type EpisodeParams struct {
 }
 
 type SubtitleParams struct {
-	Url        string `json:"url"`
-	Encoding   string `json:"encoding"`
+	FileId     string `json:"url"`
 	TargetType string `json:"targetType"`
 }
 
@@ -22,8 +21,6 @@ type SubtitleFile struct {
 	Lang         string `json:"lang"`
 	SubtitleName string `json:"subtitlename"`
 	ReleaseName  string `json:"releasename"`
-	SubFormat    string `json:"subformat"`
-	SubEncoding  string `json:"subencoding"`
 	SubData      string `json:"subdata"`
 	VttData      string `json:"vttdata"`
 }

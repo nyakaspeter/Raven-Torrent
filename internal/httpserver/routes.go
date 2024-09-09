@@ -9,10 +9,10 @@ import (
 	"github.com/nyakaspeter/raven-torrent/internal/settings"
 )
 
-const version = "0.6.0"
+const version = "0.7.0"
 
 // @Title Raven Torrent API
-// @Version 0.6.0
+// @Version 0.7.0
 // @Host localhost:9000
 // @BasePath /api/v0
 func routesHandler() http.Handler {
@@ -20,7 +20,7 @@ func routesHandler() http.Handler {
 	router.SkipClean(true)
 
 	router.HandleFunc("/file/{hash}/{base64path}", ServeTorrentFile())
-	router.HandleFunc("/subtitle/{base64path}/{encoding}/{type}", ServeSubtitleFile())
+	router.HandleFunc("/subtitle/{fileId}/{type}", ServeSubtitleFile())
 
 	if *settings.EnableReceiver {
 		router.HandleFunc("/", ReceiverPage())

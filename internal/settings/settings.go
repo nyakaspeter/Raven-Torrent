@@ -18,7 +18,9 @@ var MemorySize *int64
 var Background *bool
 var CORS *bool
 var TMDBKey *string
-var OpenSubtitlesUserAgent *string
+var OpenSubtitlesUser *string
+var OpenSubtitlesPassword *string
+var OpenSubtitlesKey *string
 var JackettAddress *string
 var JackettKey *string
 
@@ -41,6 +43,8 @@ func Init() {
 	TMDBKey = flag.String("tmdbkey", "a4d9ad8d2d072c50dc998cc0d1a508fa", "set external TMDB API key")
 	JackettAddress = flag.String("jackettaddress", "", "set external Jackett API address")
 	JackettKey = flag.String("jackettkey", "", "set external Jackett API key")
-	OpenSubtitlesUserAgent = flag.String("osuseragent", "White Raven v0.3", "set external OpenSubtitles user agent")
+	OpenSubtitlesUser = flag.String("osuser", "", "set OpenSubtitles.com username")
+	OpenSubtitlesPassword = flag.String("ospassword", "", "set external OpenSubtitles.com password")
+	OpenSubtitlesKey = flag.String("osapikey", "", "set OpenSubtitles.com api key")
 	flag.Parse()
 }

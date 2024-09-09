@@ -21,7 +21,6 @@ import (
 	"github.com/nyakaspeter/raven-torrent/internal/torrentclient/memorystorage"
 	"github.com/nyakaspeter/raven-torrent/internal/torrentclient/types"
 	"github.com/nyakaspeter/raven-torrent/pkg/utils"
-	"github.com/oz/osdb"
 	"golang.org/x/time/rate"
 )
 
@@ -217,30 +216,31 @@ func GetFileIndexByPath(search string, files []*torrent.File) int {
 }
 
 func CalculateOpensubtitlesHash(file *torrent.File) string {
+	chunkSize := 65536
 	fileReader := file.NewReader()
 
-	if file.Length() < osdb.ChunkSize {
+	if file.Length() < int64(chunkSize) {
 		return "0"
 	}
 
 	// The First and Last 65536 bytes are used to calculate the hash
-	buffer := make([]byte, osdb.ChunkSize*2)
+	buffer := make([]byte, chunkSize*2)
 
 	fileReader.Seek(0, 0)
-	_, err := fileReader.Read(buffer[:osdb.ChunkSize])
+	_, err := fileReader.Read(buffer[:chunkSize])
 	if err != nil {
 		return "0"
 	}
 
-	fileReader.Seek(-(osdb.ChunkSize), 2)
-	_, err = fileReader.Read(buffer[osdb.ChunkSize:])
+	fileReader.Seek(-(int64(chunkSize)), 2)
+	_, err = fileReader.Read(buffer[chunkSize:])
 	if err != nil && err != io.EOF {
 		return "0"
 	}
 
 	// Convert to uint64, and sum.
 	var hash uint64
-	nums := make([]uint64, ((osdb.ChunkSize * 2) / 8))
+	nums := make([]uint64, ((chunkSize * 2) / 8))
 	bufferReader := bytes.NewReader(buffer)
 	err = binary.Read(bufferReader, binary.LittleEndian, &nums)
 	if err != nil {

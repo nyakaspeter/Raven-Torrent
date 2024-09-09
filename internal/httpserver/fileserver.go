@@ -55,24 +55,19 @@ func ServeSubtitleFile() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 
-		if subtitleUrl, err := base64.StdEncoding.DecodeString(vars["base64path"]); err == nil {
-			params := subtitlestypes.SubtitleParams{}
-			params.Url = string(subtitleUrl)
-			params.Encoding = vars["encoding"]
-			params.TargetType = vars["type"]
+		params := subtitlestypes.SubtitleParams{}
+		params.FileId = vars["fileId"]
+		params.TargetType = vars["type"]
 
-			contents := subtitles.GetSubtitleContents(params)
+		contents := subtitles.GetSubtitleContents(params)
 
-			if contents.Text == "" {
-				http.Error(w, "Failed to load subtitle", http.StatusNotFound)
-				return
-			}
-
-			w.Header().Set("Content-Disposition", contents.ContentDisposition)
-			w.Header().Set("Content-Type", contents.ContentType)
-			io.WriteString(w, contents.Text)
-		} else {
+		if contents.Text == "" {
 			http.Error(w, "Failed to load subtitle", http.StatusNotFound)
+			return
 		}
+
+		w.Header().Set("Content-Disposition", contents.ContentDisposition)
+		w.Header().Set("Content-Type", contents.ContentType)
+		io.WriteString(w, contents.Text)
 	}
 }
