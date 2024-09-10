@@ -24,7 +24,7 @@ type MovieMagnetLinksResponse struct {
 // @Description
 // @Tags Torrent search
 // @Param imdb path string true "IMDB id of the movie" example(tt0133093)
-// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, ncore, yts, 1337x, itorrent" example(jackett,yts)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, ncore, insane, yts, 1337x, itorrent" example(jackett,yts)
 // @Success 200 {object} MovieMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
@@ -48,7 +48,7 @@ func GetMovieTorrentsByImdb() func(w http.ResponseWriter, r *http.Request) {
 // @Description
 // @Tags Torrent search
 // @Param query path string true "URI encoded query string. Supported parameters: title, releaseyear" example(title=The+Matrix&releaseyear=1999)
-// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, ncore, yts, 1337x, itorrent" example(jackett,yts)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, ncore, insane, yts, 1337x, itorrent" example(jackett,yts)
 // @Success 200 {object} MovieMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +72,7 @@ func GetMovieTorrentsByQuery() func(w http.ResponseWriter, r *http.Request) {
 // @Tags Torrent search
 // @Param imdb path string true "IMDB id of the movie" example(tt0133093)
 // @Param query path string true "URI encoded query string. Supported parameters: title, releaseyear" example(title=The+Matrix&releaseyear=1999)
-// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, ncore, yts, 1337x, itorrent" example(jackett,yts)
+// @Param providers path string true "Torrent providers to use, separated by comma. Possible values: jackett, ncore, insane, yts, 1337x, itorrent" example(jackett,yts)
 // @Success 200 {object} MovieMagnetLinksResponse
 // @Failure 404 {object} MessageResponse
 func GetMovieTorrentsByImdbAndQuery() func(w http.ResponseWriter, r *http.Request) {
@@ -129,6 +129,12 @@ func getSourceParams(providers string) torrentsTypes.SourceParams {
 			if len(sourceArgs) == 2 {
 				sourceParams.Ncore.Username = sourceArgs[0]
 				sourceParams.Ncore.Password = sourceArgs[1]
+			}
+		case "insane":
+			sourceParams.Insane.Enabled = true
+			if len(sourceArgs) == 2 {
+				sourceParams.Insane.Username = sourceArgs[0]
+				sourceParams.Insane.Password = sourceArgs[1]
 			}
 		case "yts":
 			sourceParams.Yts.Enabled = true

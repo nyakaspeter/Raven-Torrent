@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/eztv"
+	"github.com/nyakaspeter/raven-torrent/pkg/torrents/insane"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/itorrent"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/jackett"
 	"github.com/nyakaspeter/raven-torrent/pkg/torrents/ncore"
@@ -19,17 +20,23 @@ func GetMovieTorrents(movie types.MovieParams, sources types.SourceParams) []typ
 	ch := make(chan []types.MovieTorrent)
 
 	count := 0
-	if sources.Jackett.Enabled {
-		go jackett.GetMovieTorrentsByText(movie.SearchText, sources.Jackett.Address, sources.Jackett.ApiKey, ch)
-		count++
-	}
-	if sources.Ncore.Enabled {
-		go ncore.GetMovieTorrentsByText(movie.SearchText, sources.Ncore.Username, sources.Ncore.Password, ch)
-		count++
-	}
-	if sources.X1337x.Enabled {
-		go x1337x.GetMovieTorrentsByText(movie.SearchText, ch)
-		count++
+	if movie.SearchText != "" {
+		if sources.Jackett.Enabled {
+			go jackett.GetMovieTorrentsByText(movie.SearchText, sources.Jackett.Address, sources.Jackett.ApiKey, ch)
+			count++
+		}
+		if sources.Ncore.Enabled {
+			go ncore.GetMovieTorrentsByText(movie.SearchText, sources.Ncore.Username, sources.Ncore.Password, ch)
+			count++
+		}
+		if sources.Insane.Enabled {
+			go insane.GetMovieTorrentsByText(movie.SearchText, sources.Insane.Username, sources.Insane.Password, ch)
+			count++
+		}
+		if sources.X1337x.Enabled {
+			go x1337x.GetMovieTorrentsByText(movie.SearchText, ch)
+			count++
+		}
 	}
 	if movie.ImdbId != "" {
 		if sources.Jackett.Enabled {
@@ -38,6 +45,10 @@ func GetMovieTorrents(movie types.MovieParams, sources types.SourceParams) []typ
 		}
 		if sources.Ncore.Enabled {
 			go ncore.GetMovieTorrentsByImdbId(movie.ImdbId, sources.Ncore.Username, sources.Ncore.Password, ch)
+			count++
+		}
+		if sources.Insane.Enabled {
+			go insane.GetMovieTorrentsByImdbId(movie.ImdbId, sources.Insane.Username, sources.Insane.Password, ch)
 			count++
 		}
 		if sources.Yts.Enabled {
@@ -87,17 +98,23 @@ func GetShowTorrents(show types.ShowParams, sources types.SourceParams) []types.
 	ch := make(chan []types.ShowTorrent)
 
 	count := 0
-	if sources.Jackett.Enabled {
-		go jackett.GetShowTorrentsByText(show.SearchText, show.Season, show.Episode, sources.Jackett.Address, sources.Jackett.ApiKey, ch)
-		count++
-	}
-	if sources.Ncore.Enabled {
-		go ncore.GetShowTorrentsByText(show.SearchText, show.Season, show.Episode, sources.Ncore.Username, sources.Ncore.Password, ch)
-		count++
-	}
-	if sources.X1337x.Enabled {
-		go x1337x.GetShowTorrentsByText(show.SearchText, show.Season, show.Episode, ch)
-		count++
+	if show.SearchText != "" {
+		if sources.Jackett.Enabled {
+			go jackett.GetShowTorrentsByText(show.SearchText, show.Season, show.Episode, sources.Jackett.Address, sources.Jackett.ApiKey, ch)
+			count++
+		}
+		if sources.Ncore.Enabled {
+			go ncore.GetShowTorrentsByText(show.SearchText, show.Season, show.Episode, sources.Ncore.Username, sources.Ncore.Password, ch)
+			count++
+		}
+		if sources.Insane.Enabled {
+			go insane.GetShowTorrentsByText(show.SearchText, show.Season, show.Episode, sources.Insane.Username, sources.Insane.Password, ch)
+			count++
+		}
+		if sources.X1337x.Enabled {
+			go x1337x.GetShowTorrentsByText(show.SearchText, show.Season, show.Episode, ch)
+			count++
+		}
 	}
 	if show.ImdbId != "" {
 		if sources.Jackett.Enabled {
@@ -106,6 +123,10 @@ func GetShowTorrents(show types.ShowParams, sources types.SourceParams) []types.
 		}
 		if sources.Ncore.Enabled {
 			go ncore.GetShowTorrentsByImdbId(show.ImdbId, show.Season, show.Episode, sources.Ncore.Username, sources.Ncore.Password, ch)
+			count++
+		}
+		if sources.Insane.Enabled {
+			go insane.GetShowTorrentsByImdbId(show.ImdbId, show.Season, show.Episode, sources.Insane.Username, sources.Insane.Password, ch)
 			count++
 		}
 		if sources.Eztv.Enabled {

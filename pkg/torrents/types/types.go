@@ -47,6 +47,7 @@ type SourceParams struct {
 	X1337x   X1337xParams   `json:"x1337x"`
 	Eztv     EztvParams     `json:"eztv"`
 	Ncore    NcoreParams    `json:"ncore"`
+	Insane   InsaneParams   `json:"insane"`
 }
 
 type JackettParams struct {
@@ -56,6 +57,12 @@ type JackettParams struct {
 }
 
 type NcoreParams struct {
+	Enabled  bool   `json:"enabled"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type InsaneParams struct {
 	Enabled  bool   `json:"enabled"`
 	Username string `json:"username"`
 	Password string `json:"password"`

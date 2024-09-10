@@ -25,6 +25,8 @@ var JackettAddress *string
 var JackettKey *string
 var NcoreUser *string
 var NcorePassword *string
+var InsaneUser *string
+var InsanePassword *string
 
 func Init() {
 	Host = flag.String("host", "", "listening server ip")
@@ -50,5 +52,7 @@ func Init() {
 	OpenSubtitlesKey = flag.String("osapikey", "", "set OpenSubtitles.com api key")
 	NcoreUser = flag.String("ncoreuser", "", "set nCore username")
 	NcorePassword = flag.String("ncorepassword", "", "set nCore password")
+	InsaneUser = flag.String("insaneuser", "", "set iNSANE username")
+	InsanePassword = flag.String("insanepassword", "", "set iNSANE password")
 	flag.Parse()
 }
