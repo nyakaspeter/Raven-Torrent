@@ -23,6 +23,8 @@ var OpenSubtitlesPassword *string
 var OpenSubtitlesKey *string
 var JackettAddress *string
 var JackettKey *string
+var NcoreUser *string
+var NcorePassword *string
 
 func Init() {
 	Host = flag.String("host", "", "listening server ip")
@@ -46,5 +48,7 @@ func Init() {
 	OpenSubtitlesUser = flag.String("osuser", "", "set OpenSubtitles.com username")
 	OpenSubtitlesPassword = flag.String("ospassword", "", "set external OpenSubtitles.com password")
 	OpenSubtitlesKey = flag.String("osapikey", "", "set OpenSubtitles.com api key")
+	NcoreUser = flag.String("ncoreuser", "", "set nCore username")
+	NcorePassword = flag.String("ncorepassword", "", "set nCore password")
 	flag.Parse()
 }

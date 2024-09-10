@@ -46,12 +46,19 @@ type SourceParams struct {
 	Itorrent ItorrentParams `json:"itorrent"`
 	X1337x   X1337xParams   `json:"x1337x"`
 	Eztv     EztvParams     `json:"eztv"`
+	Ncore    NcoreParams    `json:"ncore"`
 }
 
 type JackettParams struct {
 	Enabled bool   `json:"enabled"`
 	Address string `json:"apiAddress"`
 	ApiKey  string `json:"apiKey"`
+}
+
+type NcoreParams struct {
+	Enabled  bool   `json:"enabled"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type YtsParams struct {
